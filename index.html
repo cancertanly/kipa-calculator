@@ -1,0 +1,4380 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Калькулятор сигналов КИПиА и Частотника (4-20 мА)</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .params-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .param-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .param-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .range-tag {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .range-sep {
+      color: var(--card-border);
+      padding: 0 2px;
+    }
+
+    .range-unit {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-left: 2px;
+      white-space: nowrap;
+    }
+
+    .input-compact {
+      width: 62px !important;
+      padding: 6px 6px !important;
+      font-size: 0.95rem !important;
+      text-align: center;
+      background: #1e293b !important;
+      border: 1px solid var(--card-border) !important;
+      border-radius: 6px;
+      color: #fff;
+    }
+
+    /* Убираем стрелочки спиннера, чтобы поля не занимали лишнее место */
+    .input-compact::-webkit-inner-spin-button,
+    .input-compact::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .input-compact {
+      -moz-appearance: textfield;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+      }
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* Primary Interactive Value Inputs */
+    .value-card {
+      background: #0b1329;
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .value-card:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .value-card .badge {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: #1e293b;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      border: 1px solid var(--card-border);
+    }
+
+    .value-card input {
+      width: 100%;
+      font-size: 1.7rem;
+      font-weight: 700;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 4px;
+    }
+
+    .value-card input:focus {
+      box-shadow: none;
+    }
+
+    .value-card .unit {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    /* Slider Bar */
+    .slider-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #334155;
+      outline: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+      border: 2px solid #fff;
+      transition: transform 0.1s ease;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Quick Preset Buttons */
+    .quick-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-quick {
+      flex: 1;
+      min-width: 60px;
+      background: #334155;
+      color: var(--text-main);
+      border: 1px solid transparent;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-quick:hover {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    /* Gauge / Comparison Scale */
+    .visual-scale {
+      margin-top: 20px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .scale-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .scale-progress-container {
+      position: relative;
+      height: 18px;
+      background: #1e293b;
+      border-radius: 9px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .scale-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      transition: width 0.1s linear;
+    }
+
+    .alarm-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+
+    .status-normal {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-broken {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-overflow {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* Calibration Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: #0f172a;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(56, 189, 248, 0.05);
+      cursor: pointer;
+    }
+
+    /* Formulas collapse */
+    details {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .formula-box {
+      margin-top: 10px;
+      padding: 10px;
+      background: #1e293b;
+      border-radius: 6px;
+      font-family: monospace;
+      color: var(--accent);
+      line-height: 1.6;
+    }
+
+    .btn-nvf2g {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      border: 1px solid #38bdf8;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-nvf2g:hover {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(14, 165, 233, 0.5);
+    }
+
+    .btn-delta {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: #fff;
+      border: 1px solid #34d399;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-delta:hover {
+      background: linear-gradient(135deg, #10b981, #059669);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-danfoss {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      color: #fff;
+      border: 1px solid #f87171;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-danfoss:hover {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.5);
+    }
+
+    /* Модальное окно мастера NVF2G */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: 14px 18px;
+      background: #0f172a;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .modal-header h2 {
+      font-size: 1.25rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.6rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .calc-box {
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calc-box-title {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .calc-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #fff;
+    }
+
+    .step-num {
+      background: var(--accent);
+      color: #0f172a;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    .param-table th, .param-table td {
+      padding: 8px 10px;
+      border: 1px solid var(--card-border);
+      text-align: left;
+    }
+
+    .param-table th {
+      background: #1e293b;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .param-code {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      background: #1e293b;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .param-val {
+      font-family: monospace;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .wiring-box {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+      border-left: 4px solid var(--accent);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 16px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* Стили для вкладок в модальных окнах частотников */
+    .modal-tabs {
+      display: flex;
+      flex-shrink: 0;
+      background: #090d16;
+      border-bottom: 2px solid var(--card-border);
+      padding: 0 14px;
+      gap: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      min-height: 48px;
+      height: 48px;
+      box-sizing: border-box;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .modal-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .modal-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.94rem;
+      font-weight: 600;
+      padding: 0 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      height: 48px;
+      line-height: 48px;
+      box-sizing: border-box;
+    }
+
+    .modal-tab-btn:hover {
+      color: #fff;
+    }
+
+    .modal-tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+    }
+
+    .modal-tab-btn.active.tab-delta {
+      color: #10b981;
+      border-bottom-color: #10b981;
+    }
+
+    .modal-tab-btn.active.tab-danfoss {
+      color: #ef4444;
+      border-bottom-color: #ef4444;
+    }
+
+    .tab-pane {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .tab-pane.active {
+      display: flex;
+    }
+
+    .group-header {
+      background: #1e293b;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .group-header.delta {
+      border-left-color: #10b981;
+    }
+
+    .group-header.danfoss {
+      border-left-color: #ef4444;
+    }
+
+    .param-desc {
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .example-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .example-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .example-title.delta {
+      color: #10b981;
+    }
+
+    .example-title.danfoss {
+      color: #ef4444;
+    }
+
+    .param-table td.col-code {
+      white-space: nowrap;
+      font-weight: 700;
+      font-family: monospace;
+      color: #38bdf8;
+    }
+
+    .param-table td.col-code.delta {
+      color: #10b981;
+    }
+
+    .param-table td.col-code.danfoss {
+      color: #ef4444;
+    }
+
+    .param-table td.col-default {
+      font-family: monospace;
+      color: #94a3b8;
+    }
+
+    .param-table td.col-rec {
+      font-family: monospace;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+
+    .btn-s900 {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: #fff;
+      border: 1px solid #fbbf24;
+      padding: 9px 18px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn-s900:hover {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5);
+    }
+
+    .modal-tab-btn.active.tab-s900 {
+      color: #f59e0b;
+      border-bottom-color: #f59e0b;
+    }
+
+    .group-header.s900 {
+      border-left-color: #f59e0b;
+    }
+
+    .example-title.s900 {
+      color: #f59e0b;
+    }
+
+    .param-table td.col-code.s900 {
+      color: #f59e0b;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>⚡ Калькулятор сигналов КИПиА и Частотника</h1>
+    <p>Взаимный расчет: Сигнал тока (4-20 мА) ⇄ Процент ЧРП (0-100%) ⇄ Физическая величина ⇄ Частота (Гц)</p>
+    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+      <button id="btnNvf2g" class="btn-nvf2g" onclick="openNvf2gModal()">
+        🔧 CHINT NVF2G
+      </button>
+      <button id="btnDelta" class="btn-delta" onclick="openDeltaModal()">
+        🔧 Delta VFD-B
+      </button>
+      <button id="btnDanfoss" class="btn-danfoss" onclick="openDanfossModal()">
+        🔧 Danfoss FC 302
+      </button>
+      <button id="btnSeries900" class="btn-s900" onclick="openSeries900Modal()">
+        🔧 Серия 900 / X9
+      </button>
+      <button id="btnInstallApp" style="display: none; background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
+        📲 Установить приложение на телефон
+      </button>
+    </div>
+  </header>
+
+  <!-- БЛОК НАСТРОЕК ШКАЛЫ -->
+  <div class="card">
+    <div class="card-title">⚙️ Параметры датчика и частотника</div>
+    <div class="params-grid">
+      <!-- 1. Сигнал датчика -->
+      <div class="param-card">
+        <label for="signalType" class="param-title">Тип сигнала / Токовая петля</label>
+        <select id="signalType">
+          <option value="4-20">4 – 20 мА (Стандарт КИПиА)</option>
+          <option value="0-20">0 – 20 мА</option>
+          <option value="0-10">0 – 10 В (Напряжение)</option>
+          <option value="2-10">2 – 10 В</option>
+          <option value="custom">Пользовательский...</option>
+        </select>
+        <div class="range-row">
+          <span class="range-tag">Мин:</span>
+          <input type="number" id="sigMin" class="input-compact" value="4" step="0.1">
+          <span class="range-sep">—</span>
+          <span class="range-tag">Макс:</span>
+          <input type="number" id="sigMax" class="input-compact" value="20" step="0.1">
+          <span class="range-unit" id="lblSignalUnit">мА</span>
+        </div>
+      </div>
+
+      <!-- 2. Физическая величина -->
+      <div class="param-card">
+        <label for="unitPreset" class="param-title">Физическая величина</label>
+        <select id="unitPreset">
+          <option value="pressure_10" selected>Давление: 0 – 10 бар</option>
+          <option value="pressure_16">Давление: 0 – 16 бар</option>
+          <option value="pressure_6">Давление: 0 – 6 бар</option>
+          <option value="pressure_25">Давление: 0 – 25 бар</option>
+          <option value="temp_100">Температура: 0 – 100 °C</option>
+          <option value="temp_150">Температура: -50 – +150 °C</option>
+          <option value="flow_100">Расход: 0 – 100 м³/ч</option>
+          <option value="level_5">Уровень: 0 – 5 м</option>
+          <option value="custom">Свой диапазон...</option>
+        </select>
+        <div class="range-row">
+          <span class="range-tag">Мин:</span>
+          <input type="number" id="physMin" class="input-compact" value="0" step="0.1">
+          <span class="range-sep">—</span>
+          <span class="range-tag">Макс:</span>
+          <input type="number" id="physMax" class="input-compact" value="10" step="0.1">
+          <span class="range-unit" id="lblPhysUnitMin">бар</span>
+        </div>
+      </div>
+
+      <!-- 3. Частота ЧРП -->
+      <div class="param-card">
+        <label for="freqPreset" class="param-title">Диапазон частоты ЧРП</label>
+        <select id="freqPreset">
+          <option value="0-50" selected>0 – 50 Гц (Стандарт)</option>
+          <option value="0-60">0 – 60 Гц</option>
+          <option value="20-50">20 – 50 Гц</option>
+          <option value="custom">Свой диапазон...</option>
+        </select>
+        <div class="range-row">
+          <span class="range-tag">Fмин:</span>
+          <input type="number" id="freqMin" class="input-compact" value="0" step="0.1">
+          <span class="range-sep">—</span>
+          <span class="range-tag">Fмакс:</span>
+          <input type="number" id="freqMax" class="input-compact" value="50" step="0.1">
+          <span class="range-unit">Гц</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- БЛОК ИНТЕРАКТИВНОГО РАСЧЕТА -->
+  <div class="card">
+    <div class="card-title">🎯 Интерактивный расчет в реальном времени</div>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">
+      Введите любое значение в любое из полей или двигайте ползунок — остальные параметры пересчитаются автоматически:
+    </p>
+
+    <div class="grid-4">
+      <!-- Входной ток -->
+      <div class="value-card">
+        <span class="badge" id="badgeSig">СИГНАЛ ДАТЧИКА</span>
+        <input type="number" id="valSignal" value="12.000" step="0.01">
+        <span class="unit" id="unitSig">мА</span>
+      </div>
+
+      <!-- Процент для частотника -->
+      <div class="value-card">
+        <span class="badge">ЗАДАНИЕ ЧРП</span>
+        <input type="number" id="valPercent" value="50.00" step="0.1">
+        <span class="unit">% от шкалы</span>
+      </div>
+
+      <!-- Физическая величина -->
+      <div class="value-card">
+        <span class="badge" id="badgePhys">ИЗМЕРЕНИЕ</span>
+        <input type="number" id="valPhys" value="5.000" step="0.01">
+        <span class="unit" id="unitPhys">бар</span>
+      </div>
+
+      <!-- Частота частотника -->
+      <div class="value-card">
+        <span class="badge">ВЫХОД ЧРП</span>
+        <input type="number" id="valFreq" value="25.00" step="0.1">
+        <span class="unit">Гц</span>
+      </div>
+    </div>
+
+    <!-- Ползунок -->
+    <div class="slider-container">
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+        <span>0%</span>
+        <span>25%</span>
+        <span>50%</span>
+        <span>75%</span>
+        <span>100%</span>
+      </div>
+      <input type="range" id="mainSlider" min="0" max="100" step="0.1" value="50">
+    </div>
+
+    <!-- Кнопки быстрой установки -->
+    <div class="quick-buttons">
+      <button class="btn-quick" onclick="setByPercent(0)">0% (Мин)</button>
+      <button class="btn-quick" onclick="setByPercent(25)">25%</button>
+      <button class="btn-quick" onclick="setByPercent(50)">50% (Сред)</button>
+      <button class="btn-quick" onclick="setByPercent(75)">75%</button>
+      <button class="btn-quick" onclick="setByPercent(100)">100% (Макс)</button>
+      <button class="btn-quick" style="border-color: rgba(239, 68, 68, 0.4);" onclick="setBySignal(0)">0 мА (Обрыв)</button>
+      <button class="btn-quick" style="border-color: rgba(245, 158, 11, 0.4);" onclick="setBySignal(21)">21 мА (Авария)</button>
+    </div>
+
+    <!-- Индикатор шкалы -->
+    <div class="visual-scale">
+      <div class="scale-row">
+        <span>Уровень сигнала: <strong id="dispPercent">50.0%</strong></span>
+        <span>Текущая точка: <strong id="dispSummary">12.0 мА = 5.0 бар = 25.0 Гц</strong></span>
+      </div>
+      <div class="scale-progress-container">
+        <div class="scale-progress-bar" id="progressBar" style="width: 50%;"></div>
+      </div>
+      <div id="alarmStatus" class="alarm-status status-normal">
+        ✅ Сигнал в пределах нормы (нормальная работа датчика)
+      </div>
+    </div>
+  </div>
+
+  <!-- ТАБЛИЦА КАЛИБРОВКИ / ПРОВЕРКИ -->
+  <div class="card">
+    <div class="card-title">📊 Контрольная таблица калибровки (шаг 10%)</div>
+    <div class="table-container">
+      <table id="calibTable">
+        <thead>
+          <tr>
+            <th>Точка шкалы</th>
+            <th id="thSignal">Сигнал (мА)</th>
+            <th id="thPhys">Величина (бар)</th>
+            <th>Частота (Гц)</th>
+            <th>Состояние</th>
+          </tr>
+        </thead>
+        <tbody id="calibTbody">
+          <!-- Заполняется динамически -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ФОРМУЛЫ И СПРАВКА -->
+  <div class="card">
+    <details>
+      <summary>📐 Математические формулы масштабирования и масштабирования в ПЛК / ПЧ</summary>
+      <div class="formula-box">
+        <strong>1. Расчет процента из сигнала:</strong><br>
+        % = ((I - I_min) / (I_max - I_min)) × 100%<br><br>
+        <strong>2. Расчет физической величины:</strong><br>
+        P = P_min + (% / 100) × (P_max - P_min)<br><br>
+        <strong>3. Расчет выходной частоты частотника:</strong><br>
+        F = F_min + (% / 100) × (F_max - F_min)<br><br>
+        <strong>4. Расчет тока по заданной физ. величине:</strong><br>
+        I = I_min + ((P - P_min) / (P_max - P_min)) × (I_max - I_min)<br><br>
+        <strong>5. Стандарты сигналов NAMUR NE43 для 4-20 мА:</strong><br>
+        • &lt; 3.6 мА — Обрыв цепи / Авария датчика<br>
+        • 3.8 ... 4.0 мА — Нижний диапазон погрешности<br>
+        • 4.0 ... 20.0 мА — Нормальный рабочий диапазон (0 ... 100%)<br>
+        • 20.0 ... 20.5 мА — Верхний диапазон погрешности<br>
+        • &gt; 21.0 мА — Короткое замыкание / Неисправность датчика
+      </div>
+    </details>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОШАГОВАЯ НАСТРОЙКА ПИД НА CHINT NVF2G -->
+  <div id="modalNvf2g" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔧 Настройка ПИД-регулятора: CHINT NVF2G</h2>
+        <button class="modal-close" onclick="closeNvf2gModal()">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active" data-tab-target="pane-nvf-0" onclick="switchModalTab('nvf', 0)">⚡ Быстрая ПИД-настройка</button>
+        <button class="modal-tab-btn" data-tab-target="pane-nvf-1" onclick="switchModalTab('nvf', 1)">📚 Все параметры и примеры</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-pane active" id="pane-nvf-0">
+        <!-- ИНТЕРАКТИВНЫЙ РАСЧЕТ УСТАВКИ ДЛЯ F9.02 -->
+        <div class="calc-box">
+          <div class="calc-box-title">🎯 Интерактивный расчет уставки для параметра F9.02</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            Введите шкалу вашего датчика давления и желаемое давление, которое нужно поддерживать:
+          </p>
+          <div class="calc-row">
+            <div class="form-group" style="flex: 1; min-width: 130px;">
+              <label>Мин. датчика (бар)</label>
+              <input type="number" id="nvfSensorMin" value="0" step="0.1" oninput="recalcNvf2g()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 130px;">
+              <label>Макс. датчика (бар)</label>
+              <input type="number" id="nvfSensorMax" value="10" step="0.1" oninput="recalcNvf2g()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 150px;">
+              <label>Нужное давление (бар)</label>
+              <input type="number" id="nvfTargetPressure" value="4.0" step="0.1" style="border-color: #38bdf8; font-weight: bold; color: #38bdf8;" oninput="recalcNvf2g()">
+            </div>
+          </div>
+          <div style="background: #1e293b; padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 0.95rem;">Установите в параметр <strong>F9.02</strong> значение:</span>
+            <span id="nvfResultPct" style="font-size: 1.3rem; font-weight: 800; color: #10b981; font-family: monospace;">40.0 %</span>
+          </div>
+        </div>
+
+        <!-- ШАГ 1: ПОДКЛЮЧЕНИЕ КЛЕММ И ДЖАМПЕРА -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">1</span>
+            <span>Подключение датчика давления и перемычки J1</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            Перед включением питания обязательно проверьте переключатель режима входа на плате управления ПЧ:
+          </p>
+          <div class="wiring-box">
+            • <strong>ДЖАМПЕР J1:</strong> Переставьте перемычку J1 в положение <strong>«I» (Ток 4-20 мА)</strong> вместо «V» (Напряжение 0-10В).<br>
+            • <strong>ДАТЧИК ДАВЛЕНИЯ (2-проводный 4-20 мА):</strong><br>
+            &nbsp;&nbsp;→ Провод (+) датчика подключить к клемме <strong>+24V</strong> частотника<br>
+            &nbsp;&nbsp;→ Провод (-) датчика (сигнал) подключить к клемме <strong>AI1</strong> частотника<br>
+            • <strong>ПУСК / СТОП (Внешний переключатель):</strong><br>
+            &nbsp;&nbsp;→ Сухой контакт подключить между клеммами <strong>DI1</strong> и <strong>COM</strong>.
+          </div>
+        </div>
+
+        <!-- ШАГ 2: БАЗОВЫЕ НАСТРОЙКИ -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">2</span>
+            <span>Базовые параметры пуска и частоты</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание и назначение</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">F0.01</span></td>
+                <td><span class="param-val">1</span></td>
+                <td>Источник пуска: <strong>1</strong> (клеммы DI1-COM). Если пускаете с кнопок панели — поставьте <strong>0</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F0.03</span></td>
+                <td><span class="param-val">5</span></td>
+                <td><strong>ГЛАВНЫЙ ПАРАМЕТР:</strong> Источник задания частоты = <strong>5 (ПИД-регулирование)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F0.04</span></td>
+                <td><span class="param-val">50.00</span></td>
+                <td>Максимальная выходная частота (50.00 Гц).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F0.06</span></td>
+                <td><span class="param-val">20.00</span></td>
+                <td>Нижний предел частоты (20.00 Гц) — защищает насос от перегрева без протока.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F0.07</span></td>
+                <td><span class="param-val">8.0</span></td>
+                <td>Время разгона (5.0 – 10.0 с) — предотвращает гидроудар в трубах.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F0.08</span></td>
+                <td><span class="param-val">8.0</span></td>
+                <td>Время торможения (5.0 – 10.0 с) — плавный останов насоса.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 3: КАЛИБРОВКА АНАЛОГОВОГО ВХОДА AI1 ПОД 4-20 мА -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">3</span>
+            <span>Калибровка входа AI1 под токовую петлю 4–20 мА</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            По умолчанию вход AI1 настроен на 0-10В (0-20мА). Для смещения нуля на 4 мА задайте:
+          </p>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">F7.01</span></td>
+                <td><span class="param-val">2.00</span></td>
+                <td>Минимальный сигнал входа: <strong>2.00 В</strong> (соответствует 4.00 мА при 20% шкалы).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F7.02</span></td>
+                <td><span class="param-val">0.0 %</span></td>
+                <td>Значение величины при мин. сигнале (0.0 бар = 0%).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F7.03</span></td>
+                <td><span class="param-val">10.00</span></td>
+                <td>Максимальный сигнал входа: <strong>10.00 В</strong> (соответствует 20.00 мА при 100% шкалы).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F7.04</span></td>
+                <td><span class="param-val">100.0 %</span></td>
+                <td>Значение величины при макс. сигнале (макс. давление датчика = 100%).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 4: НАСТРОЙКА ПИД-РЕГУЛЯТОРА (ГРУППА F9) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">4</span>
+            <span>Настройка контура ПИД-регулирования (Группа F9)</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">F9.00</span></td>
+                <td><span class="param-val">0</span></td>
+                <td>Источник опорного значения (уставки): <strong>0 (цифровая уставка F9.02)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.01</span></td>
+                <td><span class="param-val">0</span></td>
+                <td>Источник сигнала обратной связи: <strong>0 (аналоговый вход AI1 с датчика)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.02</span></td>
+                <td><span class="param-val" id="rowF902">40.0 %</span></td>
+                <td><strong>ЦЕЛЕВАЯ УСТАВКА ДАВЛЕНИЯ</strong> в процентах от шкалы датчика.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.03</span></td>
+                <td><span class="param-val">2.00</span></td>
+                <td>Пропорциональный коэффициент <strong>Kp</strong> (рекомендуется 1.50 – 2.50 для насосов).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.04</span></td>
+                <td><span class="param-val">2.00 с</span></td>
+                <td>Время интегрирования <strong>Ki</strong> (рекомендуется 1.50 – 3.00 с для стабильного давления).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.05</span></td>
+                <td><span class="param-val">0.00</span></td>
+                <td>Дифференциальный коэффициент <strong>Kd</strong> (0.00 = отключен, для насосов не нужен).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 5: СПЯЩИЙ РЕЖИМ (ЗАСЫПАНИЕ НАСОСА ПРИ ЗАКРЫТЫХ КРАНАХ) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num">5</span>
+            <span>Настройка спящего режима (засыпание при отсутствии расхода)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            Позволяет насосу автоматически отключаться, когда краны закрыты и давление держится в норме:
+          </p>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">F9.28</span></td>
+                <td><span class="param-val">1</span></td>
+                <td><strong>ОБЯЗАТЕЛЬНО:</strong> Расчет ПИД в останове = <strong>1</strong> (чтобы ПЧ видел момент пробуждения).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.30</span></td>
+                <td><span class="param-val">1</span></td>
+                <td>Включение спящего режима = <strong>1 (Активен)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.31</span></td>
+                <td><span class="param-val">25.00</span></td>
+                <td>Частота перехода в сон (Гц) — если частота ниже 25 Гц, значит расхода воды нет.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.32</span></td>
+                <td><span class="param-val">10.0 с</span></td>
+                <td>Задержка перехода в сон (сек) — время ожидания перед отключением мотора.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.33</span></td>
+                <td><span class="param-val">10.0 %</span></td>
+                <td>Порог пробуждения (%) — при падении давления на 10% от уставки насос просыпается.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">F9.34</span></td>
+                <td><span class="param-val">1.0 с</span></td>
+                <td>Задержка пробуждения (1.0 сек).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 6: БЫСТРАЯ ДИАГНОСТИКА -->
+        <div class="step-card" style="border-color: #f59e0b;">
+          <div class="step-header" style="color: #f59e0b;">
+            <span>💡 Советы по пусконаладке и устранению неполадок</span>
+          </div>
+          <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5; display: flex; flex-direction: column; gap: 6px;">
+            <div>• <strong>Насос работает на 50 Гц, но давление не растет:</strong> неправильное вращение крыльчатки! Обесточьте ПЧ и поменяйте местами любые две выходные фазы мотора (например, <strong>U</strong> и <strong>V</strong>).</div>
+            <div>• <strong>Стрелка манометра дергается и гуляет давление:</strong> уменьшите <code>F9.03 (Kp)</code> до 1.20 и увеличьте <code>F9.04 (Ki)</code> до 3.00-4.00 с.</div>
+            <div>• <strong>Насос не засыпает при закрытых кранах:</strong> увеличьте частоту засыпания <code>F9.31</code> (например, поднимите с 25 Гц до 30.00-35.00 Гц).</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button class="btn-quick" style="background: #38bdf8; color: #0f172a; font-weight: 700; padding: 10px 18px;" onclick="copyNvf2gSummary()">
+            📋 Скопировать список параметров
+          </button>
+          <button class="btn-quick" style="padding: 10px 18px;" onclick="closeNvf2gModal()">
+            Закрыть
+          </button>
+        </div>
+        </div>
+
+        <div class="tab-pane" id="pane-nvf-1">
+          <div style="background: #1e293b; padding: 14px 18px; border-radius: 10px; border-left: 4px solid #38bdf8; font-size: 0.92rem; line-height: 1.5;">
+            <strong>📘 Полный справочник параметров CHINT серии NVF2G</strong><br>
+            В данном справочнике собраны все основные функциональные группы частотного преобразователя, заводские значения и рекомендации по настройке. Ниже также приведены 3 готовых практических схемы подключения и конфигурации.
+          </div>
+
+          <!-- ГРУППА F0 -->
+          <div class="group-header">⚡ Группа F0: Базовые параметры работы и управления</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование параметра</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и диапазон</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code">F0.01</td>
+                <td><strong>Источник команды ПУСК/СТОП</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (клеммы)</td>
+                <td class="param-desc">0: Панель управления<br>1: Клеммы управления (DI1..DI5)<br>2: Связь RS-485 Modbus</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.03</td>
+                <td><strong>Источник опорной частоты</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">5 (ПИД) / 1 (AI1)</td>
+                <td class="param-desc">0: Цифровое задание кнопками<br>1: Вход AI1 (0-10 В)<br>2: Вход AI2 (4-20 мА)<br>5: Выход ПИД-регулятора</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.04</td>
+                <td><strong>Максимальная выходная частота</strong></td>
+                <td class="col-default">50.00 Гц</td>
+                <td class="col-rec">50.00 Гц</td>
+                <td class="param-desc">Диапазон: 10.00..400.00 Гц. Базовое ограничение привода.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.05</td>
+                <td><strong>Верхний предел рабочей частоты</strong></td>
+                <td class="col-default">50.00 Гц</td>
+                <td class="col-rec">50.00 Гц</td>
+                <td class="param-desc">Верхняя рабочая точка технологического диапазона.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.06</td>
+                <td><strong>Нижний предел рабочей частоты</strong></td>
+                <td class="col-default">0.00 Гц</td>
+                <td class="col-rec">20.00 Гц</td>
+                <td class="param-desc">Для насосов обязательно 20-25 Гц (предотвращает перегрев и сухое трение).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.07</td>
+                <td><strong>Время разгона (Ramp Up)</strong></td>
+                <td class="col-default">10.0 с</td>
+                <td class="col-rec">8.0 .. 15.0 с</td>
+                <td class="param-desc">Плавный пуск двигателя. Для тяжелых насосов 10-15 с.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.08</td>
+                <td><strong>Время торможения (Ramp Down)</strong></td>
+                <td class="col-default">10.0 с</td>
+                <td class="col-rec">8.0 .. 12.0 с</td>
+                <td class="param-desc">Плавный останов. Защищает трубопровод от гидроудара.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.09</td>
+                <td><strong>Запрет реверсивного вращения</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (Запрещен)</td>
+                <td class="param-desc">0: Реверс разрешен<br>1: Реверс строго запрещен (насосы, вентиляторы).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.10</td>
+                <td><strong>Несущая частота ШИМ</strong></td>
+                <td class="col-default">4.0 кГц</td>
+                <td class="col-rec">4.0 .. 8.0 кГц</td>
+                <td class="param-desc">Диапазон: 1.0..15.0 кГц. Увеличение снижает акустический шум мотора.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F0.16</td>
+                <td><strong>Сброс на заводские настройки</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0</td>
+                <td class="param-desc">1: Полная инициализация и возврат к заводским уставкам.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА F1 -->
+          <div class="group-header">⚙️ Группа F1: Паспортные данные двигателя и автонастройка</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование параметра</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">По шильдику</th>
+                <th style="width: 22%;">Описание и применение</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code">F1.00</td>
+                <td><strong>Номинальная мощность двигателя</strong></td>
+                <td class="col-default">По ПЧ</td>
+                <td class="col-rec">кВт мотора</td>
+                <td class="param-desc">Мощность с шильдика электродвигателя (0.4 .. 630.0 кВт).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F1.01</td>
+                <td><strong>Номинальное напряжение</strong></td>
+                <td class="col-default">380 В</td>
+                <td class="col-rec">380 В</td>
+                <td class="param-desc">Линейное напряжение питания мотора.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F1.02</td>
+                <td><strong>Номинальный ток двигателя</strong></td>
+                <td class="col-default">По ПЧ</td>
+                <td class="col-rec">Амперы (А)</td>
+                <td class="param-desc">Номинальный рабочий ток по паспорту для защиты от перегрузки.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F1.03</td>
+                <td><strong>Номинальная частота сети</strong></td>
+                <td class="col-default">50.00 Гц</td>
+                <td class="col-rec">50.00 Гц</td>
+                <td class="param-desc">Базовая частота питающей сети.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F1.04</td>
+                <td><strong>Номинальная скорость вращения</strong></td>
+                <td class="col-default">1440 об/мин</td>
+                <td class="col-rec">об/мин с шильдика</td>
+                <td class="param-desc">Паспортные синхронные/асинхронные обороты (напр. 2890, 1450, 960).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F1.11</td>
+                <td><strong>Автонастройка (Autotuning)</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (статическая)</td>
+                <td class="param-desc">0: Нет<br>1: Статическая (без вращения вала)<br>2: Динамическая (с вращением вала).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА F2 & F5 -->
+          <div class="group-header">🔌 Группа F2 & F5: Режим управления и дискретные входы DI</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование параметра</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и функция</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code">F2.00</td>
+                <td><strong>Закон управления двигателем</strong></td>
+                <td class="col-default">1 (V/F)</td>
+                <td class="col-rec">1 (V/F) / 0 (SVC)</td>
+                <td class="param-desc">0: Бессенсорное векторное (SVC)<br>1: Скалярное U/f (насосы, вентиляторы).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F2.01</td>
+                <td><strong>Ручной подъем момента (Torque Boost)</strong></td>
+                <td class="col-default">2.0 %</td>
+                <td class="col-rec">1.5 .. 3.5 %</td>
+                <td class="param-desc">Компенсация падения момента на малых скоростях вращения.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F5.00</td>
+                <td><strong>Функция клеммы DI1</strong></td>
+                <td class="col-default">1</td>
+                <td class="col-rec">1 (Пуск Вперед)</td>
+                <td class="param-desc">1: Вращение Вперед (FWD / Пуск при замыкании на DCM).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F5.01</td>
+                <td><strong>Функция клеммы DI2</strong></td>
+                <td class="col-default">2</td>
+                <td class="col-rec">2 (Реверс) / 9</td>
+                <td class="param-desc">2: Реверс (REV)<br>9: Внешний сброс аварии (Fault Reset).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F5.02</td>
+                <td><strong>Функция клеммы DI3</strong></td>
+                <td class="col-default">9</td>
+                <td class="col-rec">9 (Сброс аварии)</td>
+                <td class="param-desc">9: Сброс аварийного состояния при кратковременном замыкании.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F5.03</td>
+                <td><strong>Функция клеммы DI4</strong></td>
+                <td class="col-default">12</td>
+                <td class="col-rec">4 (Толчок) / 12</td>
+                <td class="param-desc">4: Толчковый пуск (JOG)<br>12: Внешняя аварийная блокировка (Coast Stop).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F6.00</td>
+                <td><strong>Выходное реле TA-TB-TC</strong></td>
+                <td class="col-default">2</td>
+                <td class="col-rec">2 (Авария) / 1 (RUN)</td>
+                <td class="param-desc">1: ПЧ в работе (RUN)<br>2: Авария привода (Fault Relay)<br>5: Достижение заданной частоты.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА F7 & F9 -->
+          <div class="group-header">🎯 Группа F7 & F9: Аналоговые входы, ПИД и режим сна</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование параметра</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Рекомендуемое</th>
+                <th style="width: 22%;">Описание и юстировка</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code">F7.01</td>
+                <td><strong>Нижний порог AI2 (калибровка 4 мА)</strong></td>
+                <td class="col-default">0.00 В</td>
+                <td class="col-rec">2.00 В</td>
+                <td class="param-desc">При джампере J1 в положении 'I' ток 4 мА на шунте 500 Ом дает 2.00 В.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F7.03</td>
+                <td><strong>Верхний порог AI2 (калибровка 20 мА)</strong></td>
+                <td class="col-default">10.00 В</td>
+                <td class="col-rec">10.00 В</td>
+                <td class="param-desc">Соответствует току 20 мА (шкала 100% датчика).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.00</td>
+                <td><strong>Источник задания (уставки) ПИД</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0 (цифровой)</td>
+                <td class="param-desc">0: Фиксированная уставка в F9.02<br>1: Аналоговый вход AI1 (потенциометр).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.01</td>
+                <td><strong>Источник обратной связи ПИД</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (вход AI2)</td>
+                <td class="param-desc">0: AI1 (0-10 В)<br>1: AI2 (датчик давления 4-20 мА).</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.02</td>
+                <td><strong>Цифровая уставка ПИД</strong></td>
+                <td class="col-default">50.0 %</td>
+                <td class="col-rec">По расчету %</td>
+                <td class="param-desc">Формула: (Pнуж - Pмин) / (Pмакс - Pмин) * 100%.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.03</td>
+                <td><strong>Пропорциональный коэффициент Kp</strong></td>
+                <td class="col-default">1.00</td>
+                <td class="col-rec">1.20 .. 2.00</td>
+                <td class="param-desc">Скорость реакции на изменение давления.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.04</td>
+                <td><strong>Время интегрирования Ti</strong></td>
+                <td class="col-default">1.00 с</td>
+                <td class="col-rec">2.00 .. 4.00 с</td>
+                <td class="param-desc">Устраняет статическую ошибку давления.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.28</td>
+                <td><strong>Активация режима сна (Sleep)</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (Включен)</td>
+                <td class="param-desc">0: Отключен<br>1: Автоматический останов при нулевом водоразборе.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.30</td>
+                <td><strong>Условие засыпания</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (по частоте)</td>
+                <td class="param-desc">1: Засыпание при снижении частоты до уставки F9.31.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.31</td>
+                <td><strong>Частота засыпания</strong></td>
+                <td class="col-default">20.00 Гц</td>
+                <td class="col-rec">22.00 .. 25.00 Гц</td>
+                <td class="param-desc">Если ПЧ работает на этой частоте дольше F9.32 — двигатель отключается.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.32</td>
+                <td><strong>Задержка засыпания</strong></td>
+                <td class="col-default">5.0 с</td>
+                <td class="col-rec">10.0 .. 15.0 с</td>
+                <td class="param-desc">Фильтр от кратковременных колебаний расхода воды.</td>
+              </tr>
+              <tr>
+                <td class="col-code">F9.33</td>
+                <td><strong>Порог пробуждения</strong></td>
+                <td class="col-default">5.0 %</td>
+                <td class="col-rec">5.0 .. 10.0 %</td>
+                <td class="param-desc">Падение давления относительно уставки, при котором насос снова включится.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ПРАКТИЧЕСКИЕ ПРИМЕРЫ -->
+          <div class="group-header" style="margin-top: 24px;">💡 Практические примеры применения и схемы расключения</div>
+
+          <!-- Пример 1 -->
+          <div class="example-box">
+            <div class="example-title">🚰 Пример 1: Насосная станция постоянного давления (ХВС) со спящим режимом</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Поддержание давления 4.0 бар в водопроводной сети с помощью датчика 0-10 бар (4-20 мА). При закрытии всех кранов насос должен плавно отключиться (уснуть), а при начале водоразбора — мгновенно проснуться.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Датчик давления: Клемма +24V -> Контакт (+) датчика; Контакт (-) датчика -> Клемма AI2.<br>
+                Перемычка COM - 0V: установлена для замыкания токовой петли.<br>
+                Джампер J1: переведен в положение [I] (токовый вход 500 Ом).<br>
+                Разрешение работы: перемычка / тумблер между DI1 и DCM (Пуск Вперед).
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>F0.01 = 1</code> (Пуск с клемм DI1-DCM)<br>
+              • <code>F0.03 = 5</code> (Частота от ПИД)<br>
+              • <code>F0.06 = 20.00</code> (Минимальная частота 20 Гц)<br>
+              • <code>F0.09 = 1</code> (Запрет реверса мотора)<br>
+              • <code>F7.01 = 2.00</code> (4 мА = 2 В)<br>
+              • <code>F9.00 = 0</code> (Уставка с F9.02)<br>
+              • <code>F9.01 = 1</code> (Обратная связь с AI2)<br>
+              • <code>F9.02 = 40.0</code> (4.0 бар при шкале 10 бар = 40%)<br>
+              • <code>F9.03 = 1.5</code>, <code>F9.04 = 3.0</code> (Kp и Ti)<br>
+              • <code>F9.28 = 1</code>, <code>F9.30 = 1</code>, <code>F9.31 = 23.00</code>, <code>F9.32 = 12.0</code>, <code>F9.33 = 8.0</code> (Спящий режим).
+            </div>
+          </div>
+
+          <!-- Пример 2 -->
+          <div class="example-box">
+            <div class="example-title">🌀 Пример 2: Вытяжной вентилятор с внешним потенциометром 0-10 В</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Регулирование производительности вытяжного вентилятора крутилкой (потенциометром 10 кОм) на дверце шкафа. Пуск вентилятора разрешается контактом от приточной автоматики.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Потенциометр: Крайний 1 -> +10V, Средний (движок) -> AI1, Крайний 2 -> GND.<br>
+                Разрешение: сухой контакт системы автоматики подключен к DI1 и DCM.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>F0.01 = 1</code> (Пуск по внешнему контакту на клемме DI1)<br>
+              • <code>F0.03 = 1</code> (Задание частоты аналоговым напряжением 0-10 В с входа AI1)<br>
+              • <code>F0.07 = 15.0</code>, <code>F0.08 = 15.0</code> (Плавный разгон и замедление крыльчатки)<br>
+              • <code>F0.09 = 1</code> (Запрет реверса)<br>
+              • <code>F2.00 = 1</code> (Скалярная характеристика U/f для вентиляторов).
+            </div>
+          </div>
+
+          <!-- Пример 3 -->
+          <div class="example-box">
+            <div class="example-title">📦 Пример 3: Двухскоростной конвейер с кнопочным управлением</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Конвейерная линия: по кнопке DI1 работает на низкой скорости (15 Гц), при срабатывании концевика DI4 переключается на высокую скорость (50 Гц).<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Кнопка Пуск/Рабочая скорость: контакт замыкает DI1 на DCM.<br>
+                Переключатель быстрой скорости: контакт замыкает DI4 на DCM.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>F0.01 = 1</code> (Управление пуском с клемм)<br>
+              • <code>F0.03 = 0</code> (Предустановленные скорости)<br>
+              • <code>F5.00 = 1</code> (DI1: Пуск Вперед)<br>
+              • <code>F5.03 = 16</code> (DI4: Выбор многоскоростного режима 1)<br>
+              • <code>FC.00 = 15.00</code> (Скорость 1: 15 Гц)<br>
+              • <code>FC.01 = 50.00</code> (Скорость 2: 50 Гц).
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn-quick" style="padding: 10px 18px;" onclick="closeNvf2gModal()">
+              Закрыть
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОШАГОВАЯ НАСТРОЙКА ПИД НА DELTA VFD-B -->
+  <div id="modalDelta" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔧 Настройка ПИД-регулятора: DELTA VFD-B</h2>
+        <button class="modal-close" onclick="closeDeltaModal()">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active tab-delta" data-tab-target="pane-delta-0" onclick="switchModalTab('delta', 0)">⚡ Быстрая ПИД-настройка</button>
+        <button class="modal-tab-btn tab-delta" data-tab-target="pane-delta-1" onclick="switchModalTab('delta', 1)">📚 Все параметры и примеры</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-pane active" id="pane-delta-0">
+        <!-- ИНТЕРАКТИВНЫЙ РАСЧЕТ УСТАВКИ ДЛЯ DELTA VFD-B -->
+        <div class="calc-box" style="border-color: #34d399;">
+          <div class="calc-box-title" style="color: #34d399;">🎯 Интерактивный расчет уставки давления для Delta VFD-B</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            В Delta VFD-B уставка задается на цифровом пульте (кнопками стрелок $\uparrow / \downarrow$) в Герцах от максимальной частоты:
+          </p>
+          <div class="calc-row">
+            <div class="form-group" style="flex: 1; min-width: 120px;">
+              <label>Мин. датчика (бар)</label>
+              <input type="number" id="deltaSensorMin" value="0" step="0.1" oninput="recalcDelta()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 120px;">
+              <label>Макс. датчика (бар)</label>
+              <input type="number" id="deltaSensorMax" value="10" step="0.1" oninput="recalcDelta()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 140px;">
+              <label>Нужное давление (бар)</label>
+              <input type="number" id="deltaTargetPressure" value="4.0" step="0.1" style="border-color: #34d399; font-weight: bold; color: #34d399;" oninput="recalcDelta()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 120px;">
+              <label>Fmax ПЧ (Pr.01-00)</label>
+              <input type="number" id="deltaFmax" value="50.0" step="1.0" oninput="recalcDelta()">
+            </div>
+          </div>
+          <div style="background: #1e293b; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border: 1px solid #334155;">
+            <div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Уставка на экране пульта стрелками $\uparrow / \downarrow$:</div>
+              <div id="deltaResultHz" style="font-size: 1.4rem; font-weight: 800; color: #34d399; font-family: monospace;">20.00 Гц</div>
+            </div>
+            <div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">В процентах от шкалы датчика:</div>
+              <div id="deltaResultPct" style="font-size: 1.3rem; font-weight: 800; color: #38bdf8; font-family: monospace;">40.0 %</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ШАГ 1: ПОДКЛЮЧЕНИЕ КЛЕММ И СХЕМА -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #10b981;">1</span>
+            <span>Подключение датчика 4–20 мА к клеммнику Delta VFD-B</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            У Delta VFD-B аналоговый токовый вход выведен на отдельную клемму <strong>ACI</strong>:
+          </p>
+          <div class="wiring-box" style="border-left-color: #10b981;">
+            • <strong>ДАТЧИК ДАВЛЕНИЯ (2-проводный 4–20 мА):</strong><br>
+            &nbsp;&nbsp;→ Провод (+) датчика подключить к клемме <strong>+24V</strong> (внутренний источник ПЧ или внешний БП)<br>
+            &nbsp;&nbsp;→ Сигнальный провод (-) подключить к клемме <strong>ACI</strong> (Analog Current Input 4-20 мА)<br>
+            • <strong>ОБЯЗАТЕЛЬНАЯ ПЕРЕМЫЧКА ЗЕМЛИ:</strong><br>
+            &nbsp;&nbsp;→ Установите перемычку между клеммами <strong>ACM</strong> (аналоговая земля) и <strong>DCM</strong> (общий минус 24V)!<br>
+            • <strong>ПУСК / СТОП (Внешний переключатель):</strong><br>
+            &nbsp;&nbsp;→ Сухой контакт (тумблер) подключить между клеммами <strong>FWD</strong> (Forward) и <strong>DCM</strong>.
+          </div>
+        </div>
+
+        <!-- ШАГ 2: БАЗОВЫЕ НАСТРОЙКИ (ГРУППЫ 01 И 02) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #10b981;">2</span>
+            <span>Базовые параметры управления и двигателя</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание и назначение</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">02-00</span></td>
+                <td><span class="param-val">00</span></td>
+                <td>Источник задания уставки: <strong>00 (Цифровой пульт управления UP/DOWN)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">02-01</span></td>
+                <td><span class="param-val">01</span></td>
+                <td>Источник пуска: <strong>01 (Внешние клеммы FWD-DCM)</strong>. Либо <strong>00</strong> для пуска кнопками пульта.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">01-00</span></td>
+                <td><span class="param-val">50.00</span></td>
+                <td>Максимальная выходная частота (50.00 Гц).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">01-02</span></td>
+                <td><span class="param-val">380.0</span></td>
+                <td>Максимальное выходное напряжение (по шильдику мотора: 380В или 220В).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">01-07</span></td>
+                <td><span class="param-val">20.00</span></td>
+                <td>Минимальная выходная частота (20.00 Гц) — защита насоса от сухого хода и перегрева.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">01-09</span></td>
+                <td><span class="param-val">8.0</span></td>
+                <td>Время разгона 1 (сек) — плавный подъем давления без гидроударов.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">01-10</span></td>
+                <td><span class="param-val">8.0</span></td>
+                <td>Время замедления 1 (сек) — плавный останов насоса.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 3: НАСТРОЙКА ПИД-РЕГУЛЯТОРА (ГРУППА 10) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #10b981;">3</span>
+            <span>Настройка параметров ПИД-регулятора (Группа 10)</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">10-00</span></td>
+                <td><span class="param-val" style="color: #34d399;">02</span></td>
+                <td><strong>ГЛАВНЫЙ ПАРАМЕТР:</strong> Отрицательная обратная связь по входу <strong>ACI (4–20 мА)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-01</span></td>
+                <td><span class="param-val">1.00</span></td>
+                <td>Коэффициент усиления сигнала датчика обратной связи (Gain = 1.00).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-02</span></td>
+                <td><span class="param-val">1.50</span></td>
+                <td>Пропорциональный коэффициент <strong>P (Kp)</strong> (рекомендуется 1.00 – 2.00 для водоснабжения).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-03</span></td>
+                <td><span class="param-val">2.00 с</span></td>
+                <td>Интегральное время <strong>I (Ki)</strong> (рекомендуется 1.50 – 3.00 с для стабильного давления).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-04</span></td>
+                <td><span class="param-val">0.00 с</span></td>
+                <td>Дифференциальное время <strong>D (Kd)</strong> (0.00 = выключено, для насосов 0).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-07</span></td>
+                <td><span class="param-val">100 %</span></td>
+                <td>Ограничение выходной частоты ПИД (100% = 50.00 Гц).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-08</span></td>
+                <td><span class="param-val">5.0 с</span></td>
+                <td>Время обнаружения потери сигнала датчика обратной связи (сек).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">10-09</span></td>
+                <td><span class="param-val">01</span></td>
+                <td>Реакция на обрыв датчика: <strong>01 (Плавный останов с замедлением и авария)</strong>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 4: СПЯЩИЙ РЕЖИМ (ГРУППА 11: FAN & PUMP CONTROL) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #10b981;">4</span>
+            <span>Спящий режим насоса (засыпание при отсутствии расхода)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            В Delta VFD-B функции засыпания и пробуждения находятся в специальной группе <strong>11-xx</strong> (Pump & Fan):
+          </p>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">11-05</span></td>
+                <td><span class="param-val">10.0 с</span></td>
+                <td>Время задержки перехода в сон и пробуждения (сек).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">11-06</span></td>
+                <td><span class="param-val">25.00 Гц</span></td>
+                <td><strong>Частота засыпания (Sleep Freq):</strong> если частота ниже 25 Гц более 10 сек — насос засыпает (0 Гц).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">11-07</span></td>
+                <td><span class="param-val">28.00 Гц</span></td>
+                <td><strong>Частота пробуждения (Wakeup Freq):</strong> при расходе воды частота растет выше 28 Гц — насос просыпается! (Обязательно 11-07 &gt; 11-06).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 5: СОВЕТЫ ПО ПУСКОНАЛАДКЕ -->
+        <div class="step-card" style="border-color: #10b981;">
+          <div class="step-header" style="color: #34d399;">
+            <span>💡 Советы по пусконаладке Delta VFD-B</span>
+          </div>
+          <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5; display: flex; flex-direction: column; gap: 6px;">
+            <div>• <strong>Как задавать давление:</strong> на главном экране пульта нажимайте стрелки $\uparrow / \downarrow$ и выставляйте значение в Гц, рассчитанное вверху (например, <strong id="deltaHintHz">20.00 Гц</strong> соответствует 4.0 бар при шкале 10 бар).</div>
+            <div>• <strong>Насос работает, но давления нет:</strong> поменяйте местами две фазы мотора на клеммах <strong>U</strong> и <strong>V</strong>.</div>
+            <div>• <strong>Стрелка манометра плавает:</strong> уменьшите <code>10-02 (P)</code> до 1.00 и увеличьте <code>10-03 (I)</code> до 3.00-4.00 с.</div>
+            <div>• <strong>Насос не засыпает при закрытых кранах:</strong> поднимите частоту <code>11-06</code> до 30.00 Гц, а <code>11-07</code> до 33.00 Гц.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button class="btn-quick" style="background: #34d399; color: #0f172a; font-weight: 700; padding: 10px 18px;" onclick="copyDeltaSummary()">
+            📋 Скопировать список параметров
+          </button>
+          <button class="btn-quick" style="padding: 10px 18px;" onclick="closeDeltaModal()">
+            Закрыть
+          </button>
+        </div>
+        </div>
+
+        <div class="tab-pane" id="pane-delta-1">
+          <div style="background: #1e293b; padding: 14px 18px; border-radius: 10px; border-left: 4px solid #10b981; font-size: 0.92rem; line-height: 1.5;">
+            <strong>📘 Полный каталог параметров DELTA Electronics серии VFD-B</strong><br>
+            Частотный преобразователь DELTA VFD-B использует формат параметров <em>[Группа-Номер]</em> (например, 02-00). Ниже представлены все базовые группы, расшифровка режимов и готовые примеры автоматизации.
+          </div>
+
+          <!-- ГРУППА 00 & 01 -->
+          <div class="group-header delta">⚡ Группы 00 и 01: Системные параметры и частотные характеристики</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Параметр</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и диапазон</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code delta">00-02</td>
+                <td><strong>Сброс параметров на заводские</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">09 (50 Гц)</td>
+                <td class="param-desc">09: Полный сброс параметров к заводским установкам 50 Гц (европейский стандарт).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">00-03</td>
+                <td><strong>Отображение на дисплее</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">00 (Гц) / 02 (K)</td>
+                <td class="param-desc">00: Выходная частота (F)<br>01: Выходной ток (A)<br>02: Пользовательская единица (K*F).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">01-00</td>
+                <td><strong>Максимальная выходная частота (Fmax)</strong></td>
+                <td class="col-default">50.00 Гц</td>
+                <td class="col-rec">50.00 Гц</td>
+                <td class="param-desc">Предельная частота вращения двигателя (50.00..400.00 Гц).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">01-01</td>
+                <td><strong>Номинальная частота двигателя</strong></td>
+                <td class="col-default">50.00 Гц</td>
+                <td class="col-rec">50.00 Гц</td>
+                <td class="param-desc">Частота перегиба вольт-частотной кривой (базовая точка U/f).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">01-02</td>
+                <td><strong>Максимальное выходное напряжение</strong></td>
+                <td class="col-default">380.0 В</td>
+                <td class="col-rec">380.0 В</td>
+                <td class="param-desc">Номинальное напряжение электромотора.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">01-07</td>
+                <td><strong>Минимальная выходная частота</strong></td>
+                <td class="col-default">0.10 Гц</td>
+                <td class="col-rec">20.00 Гц</td>
+                <td class="param-desc">Ограничение нижнего предела для насосов во избежание перегрева.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">01-09</td>
+                <td><strong>Время разгона 1</strong></td>
+                <td class="col-default">10.0 с</td>
+                <td class="col-rec">8.0 .. 12.0 с</td>
+                <td class="param-desc">Время разгона от 0 до Fmax. Для насосов 8-12 с.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">01-10</td>
+                <td><strong>Время замедления 1</strong></td>
+                <td class="col-default">10.0 с</td>
+                <td class="col-rec">8.0 .. 12.0 с</td>
+                <td class="param-desc">Время торможения. Плавное замедление исключает гидравлический удар.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА 02 & 04 -->
+          <div class="group-header delta">🔌 Группы 02 и 04: Управление пуском, реверс и дискретные входы</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Параметр</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и функция</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code delta">02-00</td>
+                <td><strong>Источник задания частоты</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">00 (Пульт) / 02</td>
+                <td class="param-desc">00: Кнопки на панели управления<br>01: Аналоговый вход AVI (0-10 В)<br>02: Аналоговый вход ACI (4-20 мА).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">02-01</td>
+                <td><strong>Источник команды ПУСК</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">01 (Клеммы)</td>
+                <td class="param-desc">00: Кнопка RUN на панели<br>01: Внешние клеммы FWD/REV (кнопка STOP на пульте активна)<br>02: Внешние клеммы (кнопка STOP отключена).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">02-02</td>
+                <td><strong>Способ остановки двигателя</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">00 (Рампа)</td>
+                <td class="param-desc">00: Замедление по рампе (Decelerate to stop)<br>01: Останов самовыбегом (Coast to stop).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">02-04</td>
+                <td><strong>Запрет реверсивного вращения</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">01 (Запрещен)</td>
+                <td class="param-desc">00: Реверс разрешен<br>01: Реверс строго заблокирован.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">04-07</td>
+                <td><strong>Схема внешнего управления</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">00 (2-пров) / 02</td>
+                <td class="param-desc">00: 2-проводная (FWD/STOP, REV/STOP)<br>01: 2-проводная (RUN/STOP, FWD/REV)<br>02: 3-проводная импульсная (кнопки Пуск/Стоп).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">05-00</td>
+                <td><strong>Многофункциональное реле RA-RB-RC</strong></td>
+                <td class="col-default">01</td>
+                <td class="col-rec">01 (Авария) / 02</td>
+                <td class="param-desc">01: Авария ПЧ (Fault Indication)<br>02: Привод в работе (Drive Running)<br>08: Достижение целевой частоты.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА 10 & 11 -->
+          <div class="group-header delta">🎯 Группы 10 и 11: ПИД-регулирование и функция сна (Fan & Pump)</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Параметр</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Рекомендуемое</th>
+                <th style="width: 22%;">Описание и настройка</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code delta">10-00</td>
+                <td><strong>Режим работы ПИД-регулятора</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">02 (ACI 4-20 мА)</td>
+                <td class="param-desc">00: ПИД выключен<br>01: ПИД вкл, прямая ОС с AVI (0-10 В)<br>02: ПИД вкл, прямая ОС с ACI (4-20 мА)<br>04: ПИД вкл, обратная ОС с ACI.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">10-01</td>
+                <td><strong>Коэффициент обратной связи</strong></td>
+                <td class="col-default">1.00</td>
+                <td class="col-rec">1.00</td>
+                <td class="param-desc">Множитель сигнала датчика обратной связи (0.01 .. 10.00).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">10-02</td>
+                <td><strong>Пропорциональный коэффициент (P)</strong></td>
+                <td class="col-default">1.0</td>
+                <td class="col-rec">1.5 .. 2.5</td>
+                <td class="param-desc">Коэффициент усиления контура давления.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">10-03</td>
+                <td><strong>Время интегрирования (I)</strong></td>
+                <td class="col-default">1.00 с</td>
+                <td class="col-rec">2.00 .. 4.00 с</td>
+                <td class="param-desc">Постоянная интегрирования. Меньше — жестче реакция, больше — мягче ход.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">10-04</td>
+                <td><strong>Время дифференцирования (D)</strong></td>
+                <td class="col-default">0.00 с</td>
+                <td class="col-rec">0.00 с</td>
+                <td class="param-desc">Для гидравлических насосных систем дифференциал отключается (0.00 с).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">10-08</td>
+                <td><strong>Контроль обрыва датчика ОС</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">01 (Включен)</td>
+                <td class="param-desc">00: Выключен<br>01: Определение обрыва петли 4-20 мА (сигнал &lt; 4 мА / 2 В).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">10-09</td>
+                <td><strong>Действие при обрыве датчика</strong></td>
+                <td class="col-default">00</td>
+                <td class="col-rec">02 (Аварийный стоп)</td>
+                <td class="param-desc">00: Предупреждение и работа на Fmin<br>01: Плавный останов<br>02: Немедленная блокировка (Err9).</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">11-05</td>
+                <td><strong>Задержка перед засыпанием</strong></td>
+                <td class="col-default">0.0 с</td>
+                <td class="col-rec">10.0 .. 15.0 с</td>
+                <td class="param-desc">Время работы на частоте сна до полной остановки мотора.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">11-06</td>
+                <td><strong>Частота спящего режима</strong></td>
+                <td class="col-default">0.00 Гц</td>
+                <td class="col-rec">22.00 .. 25.00 Гц</td>
+                <td class="param-desc">Порог частоты, ниже которого привод начинает отсчет таймера засыпания.</td>
+              </tr>
+              <tr>
+                <td class="col-code delta">11-07</td>
+                <td><strong>Частота пробуждения</strong></td>
+                <td class="col-default">0.00 Гц</td>
+                <td class="col-rec">26.00 .. 30.00 Гц</td>
+                <td class="param-desc">Частота, при которой преобразователь мгновенно выходит из спячки.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ПРАКТИЧЕСКИЕ ПРИМЕРЫ -->
+          <div class="group-header delta" style="margin-top: 24px;">💡 Практические примеры применения и схемы для DELTA VFD-B</div>
+
+          <!-- Пример 1 -->
+          <div class="example-box">
+            <div class="example-title delta">🚰 Пример 1: Насос водоснабжения с датчиком 4-20 мА и автоматическим сном</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Насос должен поддерживать давление 3.5 бар (датчик 0-10 бар, 4-20 мА). При отсутствии водоразбора частотник засыпает, предотвращая перегрев насоса.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Датчик 4-20 мА: Клемма +24V -> Датчик (+) -> Датчик (-) -> Клемма ACI.<br>
+                Перемычка ACM - 0V: для выравнивания аналоговой и цифровой земли.<br>
+                Команда ПУСК: тумблер / сухой контакт между клеммами FWD и DCM.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>02-00 = 00</code> (Задание давления с кнопок пульта в Герцах: при 3.5 бар и Fmax=50Гц выставите 17.50 Гц)<br>
+              • <code>02-01 = 01</code> (Пуск с клеммы FWD)<br>
+              • <code>02-04 = 01</code> (Запрет реверса)<br>
+              • <code>10-00 = 02</code> (ПИД активен, обратная связь по току 4-20 мА на ACI)<br>
+              • <code>10-02 = 2.0</code>, <code>10-03 = 3.0 с</code>, <code>10-04 = 0.00 с</code><br>
+              • <code>10-08 = 01</code>, <code>10-09 = 02</code> (Защита от обрыва кабеля датчика)<br>
+              • <code>11-05 = 12.0 с</code>, <code>11-06 = 22.0 Гц</code>, <code>11-07 = 27.0 Гц</code> (Спящий режим).
+            </div>
+          </div>
+
+          <!-- Пример 2 -->
+          <div class="example-box">
+            <div class="example-title delta">🔘 Пример 2: Трехпроводное кнопочное управление (Кнопки Пуск NO и Стоп NC)</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Запуск и останов привода от стандартного кнопочного поста ПКЕ (кнопка Пуск без фиксации, кнопка Стоп грибок с самовозвратом).<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Кнопка Пуск (Нормально Разомкнутая): между клеммой M0 (FWD) и DCM.<br>
+                Кнопка Стоп (Нормально Замкнутая): между клеммой M2 и DCM.<br>
+                Реверс (при необходимости): кнопка NO между клеммой M1 (REV) и DCM.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>02-01 = 01</code> (Управление с внешних клемм)<br>
+              • <code>04-07 = 02</code> (3-проводной импульсный режим управления).<br>
+              <em>При нажатии 'Пуск' двигатель запускается и удерживает работу. При нажатии 'Стоп' цепь размыкается и мотор плавно останавливается.</em>
+            </div>
+          </div>
+
+          <!-- Пример 3 -->
+          <div class="example-box">
+            <div class="example-title delta">🌪️ Пример 3: Вентилятор дымоудаления / вытяжки с плавным регулятором 0-10 В</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Управление оборотами мощного вытяжного вентилятора по сигналу 0-10 В от шкафного контроллера или ручного резистора.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Источник 0-10 В: (+) сигнала -> Клемма AVI, (-) сигнала -> Клемма ACM.<br>
+                Разрешение работы: контакт реле пожарной/общеобменной вентиляции -> FWD и DCM.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>02-00 = 01</code> (Задание частоты по напряжению 0-10 В с клеммы AVI)<br>
+              • <code>02-01 = 01</code> (Пуск замыканием контакта FWD-DCM)<br>
+              • <code>01-09 = 20.0 с</code>, <code>01-10 = 20.0 с</code> (Защита ремней и подшипников вентилятора от резких рывков).
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn-quick" style="padding: 10px 18px;" onclick="closeDeltaModal()">
+              Закрыть
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОШАГОВАЯ НАСТРОЙКА ПИД НА DANFOSS VLT FC 302 -->
+  <div id="modalDanfoss" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔧 Настройка ПИД: Danfoss VLT® FC 302</h2>
+        <button class="modal-close" onclick="closeDanfossModal()">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active tab-danfoss" data-tab-target="pane-danfoss-0" onclick="switchModalTab('danfoss', 0)">⚡ Быстрая ПИД-настройка</button>
+        <button class="modal-tab-btn tab-danfoss" data-tab-target="pane-danfoss-1" onclick="switchModalTab('danfoss', 1)">📚 Все параметры и примеры</button>
+      </div>
+      <div class="modal-body">
+        <div class="tab-pane active" id="pane-danfoss-0">
+        <!-- ИНТЕРАКТИВНЫЙ РАСЧЕТ УСТАВКИ ДЛЯ DANFOSS FC 302 -->
+        <div class="calc-box" style="border-color: #f87171;">
+          <div class="calc-box-title" style="color: #f87171;">🎯 Расчет уставки давления для Danfoss VLT FC 302</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+            В Danfoss FC 302 в режиме замкнутого контура уставка задается прямо в физических единицах (барах) или процентах:
+          </p>
+          <div class="calc-row">
+            <div class="form-group" style="flex: 1; min-width: 120px;">
+              <label>Мин. датчика (бар)</label>
+              <input type="number" id="danfossSensorMin" value="0" step="0.1" oninput="recalcDanfoss()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 120px;">
+              <label>Макс. датчика (бар)</label>
+              <input type="number" id="danfossSensorMax" value="10" step="0.1" oninput="recalcDanfoss()">
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 140px;">
+              <label>Нужное давление (бар)</label>
+              <input type="number" id="danfossTargetPressure" value="4.0" step="0.1" style="border-color: #f87171; font-weight: bold; color: #f87171;" oninput="recalcDanfoss()">
+            </div>
+          </div>
+          <div style="background: #1e293b; padding: 12px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; border: 1px solid #334155;">
+            <div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Уставка в параметре <strong>3-10[0]</strong> или с экрана LCP:</div>
+              <div id="danfossResultBar" style="font-size: 1.4rem; font-weight: 800; color: #f87171; font-family: monospace;">4.000 бар</div>
+            </div>
+            <div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">В процентах от шкалы датчика:</div>
+              <div id="danfossResultPct" style="font-size: 1.3rem; font-weight: 800; color: #38bdf8; font-family: monospace;">40.0 %</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ШАГ 1: ПОДКЛЮЧЕНИЕ КЛЕММ И СХЕМА -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #dc2626; color: #fff;">1</span>
+            <span>Клеммник Danfoss FC 302, перемычка Safe Stop и переключатель A54</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            Перед включением обязательно проверьте аппаратные перемычки на плате управления:
+          </p>
+          <div class="wiring-box" style="border-left-color: #dc2626;">
+            • <strong>ПЕРЕКЛЮЧАТЕЛЬ A54 (Под панелью LCP):</strong><br>
+            &nbsp;&nbsp;→ Снимите пульт LCP. На плате под ним найдите переключатель аналогового входа 54 (A54) и переставьте его в положение <strong>«I» (Ток 4-20 мА)</strong> вместо «U» (0-10В)!<br>
+            • <strong>ОБЯЗАТЕЛЬНАЯ ПЕРЕМЫЧКА SAFE STOP (Клемма 37):</strong><br>
+            &nbsp;&nbsp;→ Соедините проводом клемму <strong>12 (+24V)</strong> и клемму <strong>37 (Safe Stop)</strong>! Без этого ПЧ выдаст блокировку STO (Alarm 68) и мотор не включится.<br>
+            • <strong>ДАТЧИК ДАВЛЕНИЯ (2-проводный 4–20 мА):</strong><br>
+            &nbsp;&nbsp;→ Провод (+) датчика подключить к клемме <strong>12</strong> (или 13) [+24V DC, до 200 мА]<br>
+            &nbsp;&nbsp;→ Сигнальный провод (-) подключить к клемме <strong>54</strong> [Аналоговый вход 4-20 мА]<br>
+            &nbsp;&nbsp;→ Клемма <strong>55</strong> — аналоговая земля (GND)<br>
+            • <strong>ПУСК / СТОП:</strong><br>
+            &nbsp;&nbsp;→ Сухой контакт (тумблер) подключить между клеммами <strong>12 (+24V)</strong> и <strong>18 (Start)</strong> (в Danfoss стандартная логика PNP: подача +24В = Пуск).
+          </div>
+        </div>
+
+        <!-- ШАГ 2: БАЗОВЫЕ НАСТРОЙКИ (ГРУППЫ 1, 3, 4, 5) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #dc2626; color: #fff;">2</span>
+            <span>Базовые параметры режима замкнутого контура (Process Closed Loop)</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание и назначение</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">1-00</span></td>
+                <td><span class="param-val" style="color: #f87171;">[3] Process</span></td>
+                <td><strong>ГЛАВНЫЙ РЕЖИМ:</strong> Конфигурация работы = <strong>Process (ПИД замкнутого контура)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">1-03</span></td>
+                <td><span class="param-val">[1] Variable Torque</span></td>
+                <td>Характеристика момента: <strong>Переменный момент (насосный режим)</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">3-02</span></td>
+                <td><span class="param-val">0.000</span></td>
+                <td>Минимальное задание давления (0.000 бар).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">3-03</span></td>
+                <td><span class="param-val" id="rowDanfoss303">10.000</span></td>
+                <td>Максимальное задание давления (соответствует верхнему пределу датчика, бар).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">3-10[0]</span></td>
+                <td><span class="param-val" id="rowDanfoss310">4.000</span></td>
+                <td><strong>Уставка требуемого давления</strong> (вводится прямо в барах или регулируется на LCP).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">4-12</span></td>
+                <td><span class="param-val">20.0 Гц</span></td>
+                <td>Нижний предел скорости мотора (20.0 Гц) — защита насоса от перегрева без протока.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">4-14</span></td>
+                <td><span class="param-val">50.0 Гц</span></td>
+                <td>Верхний предел скорости мотора (50.0 Гц).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">3-41 / 3-42</span></td>
+                <td><span class="param-val">8.00 с</span></td>
+                <td>Время разгона и замедления (8.00 сек) — плавный пуск без гидроударов.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">5-10</span></td>
+                <td><span class="param-val">[8] Start</span></td>
+                <td>Функция цифрового входа 18: <strong>Пуск</strong>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 3: КАЛИБРОВКА АНАЛОГОВОГО ВХОДА 54 (ГРУППА 6) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #dc2626; color: #fff;">3</span>
+            <span>Масштабирование входа 54 под датчик давления 4–20 мА (Группа 6)</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">6-22</span></td>
+                <td><span class="param-val">4.00 mA</span></td>
+                <td>Минимальный ток клеммы 54 (4.00 мА).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">6-23</span></td>
+                <td><span class="param-val">20.00 mA</span></td>
+                <td>Максимальный ток клеммы 54 (20.00 мА).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">6-24</span></td>
+                <td><span class="param-val">0.000</span></td>
+                <td>Значение процесса при 4 мА: <strong>0.000 бар</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">6-25</span></td>
+                <td><span class="param-val" id="rowDanfoss625">10.000</span></td>
+                <td>Значение процесса при 20 мА: <strong>шкала датчика (10.000 бар)</strong>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 4: НАСТРОЙКА ПИД-РЕГУЛЯТОРА (ГРУППА 7) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #dc2626; color: #fff;">4</span>
+            <span>Параметры ПИД-регулятора процесса (Группа 7)</span>
+          </div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">7-20</span></td>
+                <td><span class="param-val" style="color: #f87171;">[2] Analog Input 54</span></td>
+                <td><strong>ГЛАВНОЕ:</strong> Источник обратной связи ПИД = <strong>Клемма 54</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">7-30</span></td>
+                <td><span class="param-val">[0] Normal</span></td>
+                <td>Нормальное регулирование (при падении давления насос ускоряется).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">7-31</span></td>
+                <td><span class="param-val">[1] On</span></td>
+                <td>Защита от насыщения интегратора (Anti Windup) — включена.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">7-33</span></td>
+                <td><span class="param-val">1.00</span></td>
+                <td>Пропорциональный коэффициент <strong>Kp</strong> (для насосов 0.80 – 1.50).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">7-34</span></td>
+                <td><span class="param-val">3.00 s</span></td>
+                <td>Интегральное время <strong>Ti</strong> (для водоснабжения 2.50 – 5.00 сек).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">7-35</span></td>
+                <td><span class="param-val">0.00 s</span></td>
+                <td>Дифференцирование <strong>Td</strong> (0.00 = выключено, для насосов 0).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 5: СПЯЩИЙ РЕЖИМ (ГРУППА 22: APPLICATION FUNCTIONS) -->
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-num" style="background: #dc2626; color: #fff;">5</span>
+            <span>Спящий режим насоса (засыпание при закрытых кранах)</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+            В Danfoss спящий режим и контроль отсутствия расхода (No-Flow) настраиваются в группе <strong>22-xx</strong>:
+          </p>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th>Параметр</th>
+                <th>Значение</th>
+                <th>Описание</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="param-code">22-22</span></td>
+                <td><span class="param-val">[1] Enabled</span></td>
+                <td>Контроль низкой скорости (активен при частоте близкой к 4-12).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">22-23</span></td>
+                <td><span class="param-val">[1] Sleep Mode</span></td>
+                <td>Действие при отсутствии расхода: <strong>Переход в спящий режим</strong>.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">22-40</span></td>
+                <td><span class="param-val">10 s</span></td>
+                <td>Минимальное время работы насоса перед уходом в сон.</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">22-41</span></td>
+                <td><span class="param-val">10 s</span></td>
+                <td>Минимальное время нахождения в спящем режиме (защита от частых пусков).</td>
+              </tr>
+              <tr>
+                <td><span class="param-code">22-44</span></td>
+                <td><span class="param-val">10.0 %</span></td>
+                <td>Порог пробуждения (Wake-up): падение давления на 10% от уставки будит насос.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ШАГ 6: СОВЕТЫ ПО ПУСКОНАЛАДКЕ -->
+        <div class="step-card" style="border-color: #f87171;">
+          <div class="step-header" style="color: #f87171;">
+            <span>💡 Советы по пусконаладке Danfoss VLT FC 302</span>
+          </div>
+          <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5; display: flex; flex-direction: column; gap: 6px;">
+            <div>• <strong>Кнопка [Auto On]:</strong> на панели LCP обязательно нажмите кнопку <strong>[Auto On]</strong>! В режиме [Hand On] частотник управляется вручную с кнопок, а ПИД-регулятор работает только в режиме [Auto On].</div>
+            <div>• <strong>Авария Safe Stop (Alarm 68):</strong> на клемму <strong>37</strong> не подано +24В! Проверьте перемычку между клеммой 12 и клеммой 37.</div>
+            <div>• <strong>Насос крутит, но нет давления:</strong> поменяйте местами две фазы мотора на клеммах <strong>U</strong> и <strong>V</strong> (либо измените параметр 4-10).</div>
+            <div>• <strong>Стрелка манометра раскачивается:</strong> уменьшите <code>7-33 (Kp)</code> до 0.6–0.8 и увеличьте время интегрирования <code>7-34 (Ti)</code> до 4.0–6.0 с.</div>
+            <div>• <strong>Насос не засыпает:</strong> поднимите минимальную частоту <code>4-12</code> до 25.0–30.0 Гц.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+          <button class="btn-quick" style="background: #dc2626; color: #fff; font-weight: 700; padding: 10px 18px;" onclick="copyDanfossSummary()">
+            📋 Скопировать список параметров
+          </button>
+          <button class="btn-quick" style="padding: 10px 18px;" onclick="closeDanfossModal()">
+            Закрыть
+          </button>
+        </div>
+        </div>
+
+        <div class="tab-pane" id="pane-danfoss-1">
+          <div style="background: #1e293b; padding: 14px 18px; border-radius: 10px; border-left: 4px solid #ef4444; font-size: 0.92rem; line-height: 1.5;">
+            <strong>📘 Полный справочник параметров Danfoss VLT® AutomationDrive FC 302</strong><br>
+            Частотные преобразователи Danfoss VLT FC 302 обладают расширенным меню параметров с цифровой иерархией <em>[Группа-Параметр]</em>. Ниже приведена полная справочная таблица ключевых настроек и проверенные примеры промышленной эксплуатации.
+          </div>
+
+          <!-- ГРУППА 0 & 1 -->
+          <div class="group-header danfoss">⚡ Группы 0 и 1: Управление, дисплей LCP и двигатель (AMA)</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Параметр</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и варианты</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code danfoss">0-01</td>
+                <td><strong>Язык интерфейса панели</strong></td>
+                <td class="col-default">[0] English</td>
+                <td class="col-rec">[28] Русский</td>
+                <td class="param-desc">[0] English, [28] Русский язык интерфейса LCP.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">0-02</td>
+                <td><strong>Единица индикации скорости</strong></td>
+                <td class="col-default">[1] Гц</td>
+                <td class="col-rec">[1] Гц (Hz)</td>
+                <td class="param-desc">[0] Об/мин (RPM)<br>[1] Гц (Hz).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">0-51</td>
+                <td><strong>Сброс к заводским установкам</strong></td>
+                <td class="col-default">[0] Нормально</td>
+                <td class="col-rec">[1] Сброс</td>
+                <td class="param-desc">При [1] обесточить ПЧ, дождаться погасания дисплея, включить питание (Инициализация).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">1-00</td>
+                <td><strong>Режим конфигурации (Контур)</strong></td>
+                <td class="col-default">[0] Разомкнутый</td>
+                <td class="col-rec">[3] Замкнутый контур</td>
+                <td class="param-desc">[0] Open Loop (Разомкнутый контур)<br>[3] Process Closed Loop (Замкнутый контур процесса ПИД).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">1-03</td>
+                <td><strong>Характеристика крутящего момента</strong></td>
+                <td class="col-default">[0] Постоянный</td>
+                <td class="col-rec">[1] Квадратичный / [2] AEO</td>
+                <td class="param-desc">[0] Постоянный момент (станки)<br>[1] Квадратичный (насосы)<br>[2] Auto Energy Optim (AEO).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">1-20</td>
+                <td><strong>Мощность двигателя</strong></td>
+                <td class="col-default">По ПЧ</td>
+                <td class="col-rec">кВт с шильдика</td>
+                <td class="param-desc">Номинальная мощность электромотора в кВт.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">1-22</td>
+                <td><strong>Напряжение двигателя</strong></td>
+                <td class="col-default">400 В</td>
+                <td class="col-rec">400 В</td>
+                <td class="param-desc">Линейное напряжение питания мотора.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">1-24</td>
+                <td><strong>Номинальный ток двигателя</strong></td>
+                <td class="col-default">По ПЧ</td>
+                <td class="col-rec">Амперы (А)</td>
+                <td class="param-desc">Паспортный номинальный ток для тепловой защиты.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">1-29</td>
+                <td><strong>Автоадаптация к двигателю (AMA)</strong></td>
+                <td class="col-default">[0] Выкл</td>
+                <td class="col-rec">[1] Полная AMA</td>
+                <td class="param-desc">[1] Complete AMA: точнейшее измерение сопротивления кабеля и статора без вращения вала!</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА 3, 4 & 5 -->
+          <div class="group-header danfoss">🔌 Группы 3, 4 и 5: Задание, пределы и дискретные клеммы</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Параметр</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и юстировка</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code danfoss">3-02</td>
+                <td><strong>Минимальное задание</strong></td>
+                <td class="col-default">0.000</td>
+                <td class="col-rec">0.000 бар</td>
+                <td class="param-desc">Нижняя граница диапазона процесса в технологических единицах.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">3-03</td>
+                <td><strong>Максимальное задание</strong></td>
+                <td class="col-default">50.000</td>
+                <td class="col-rec">10.000 бар</td>
+                <td class="param-desc">Верхняя граница шкалы используемого датчика (например, 10.0 бар).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">3-10 [0]</td>
+                <td><strong>Предустановленное задание</strong></td>
+                <td class="col-default">0.00 %</td>
+                <td class="col-rec">Уставка в бар</td>
+                <td class="param-desc">Желаемое целевое давление системы в реальных единицах (напр. 4.000 бар).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">3-41</td>
+                <td><strong>Время разгона 1 (Ramp 1)</strong></td>
+                <td class="col-default">3.00 с</td>
+                <td class="col-rec">8.00 .. 15.00 с</td>
+                <td class="param-desc">Время разгона до номинальной частоты.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">3-42</td>
+                <td><strong>Время торможения 1</strong></td>
+                <td class="col-default">3.00 с</td>
+                <td class="col-rec">8.00 .. 15.00 с</td>
+                <td class="param-desc">Время плавного замедления. Предотвращает гидравлический удар.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">4-10</td>
+                <td><strong>Направление вращения мотора</strong></td>
+                <td class="col-default">[0] По часовой</td>
+                <td class="col-rec">[0] По часовой</td>
+                <td class="param-desc">[0] Только по часовой стрелке (блокировка реверса насоса).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">4-12</td>
+                <td><strong>Нижний предел скорости</strong></td>
+                <td class="col-default">0.0 Гц</td>
+                <td class="col-rec">20.0 .. 25.0 Гц</td>
+                <td class="param-desc">Защита от перегрева и сухого хода подшипников насоса.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">4-14</td>
+                <td><strong>Верхний предел скорости</strong></td>
+                <td class="col-default">50.0 Гц</td>
+                <td class="col-rec">50.0 Гц</td>
+                <td class="param-desc">Максимально разрешенная частота электродвигателя.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">5-10</td>
+                <td><strong>Клемма 18 (Цифровой вход)</strong></td>
+                <td class="col-default">[8] Пуск</td>
+                <td class="col-rec">[8] Пуск</td>
+                <td class="param-desc">Запуск привода при подаче сигнала +24 В с клеммы 12/13.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">5-11</td>
+                <td><strong>Клемма 19 (Цифровой вход)</strong></td>
+                <td class="col-default">[0] Не использ.</td>
+                <td class="col-rec">[1] Сброс аварии</td>
+                <td class="param-desc">[1] Сброс аварии (Reset) при подаче импульса +24 В.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">5-40 [0]</td>
+                <td><strong>Функция Реле 1 (Клеммы 01-02-03)</strong></td>
+                <td class="col-default">[9] Авария</td>
+                <td class="col-rec">[9] Авария (Alarm)</td>
+                <td class="param-desc">[9] Авария привода<br>[5] Привод в работе (Running).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА 6, 7 & 22 -->
+          <div class="group-header danfoss">🎯 Группы 6, 7 и 22: Аналоговый вход 54, ПИД и режим сна</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Параметр</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Рекомендуемое</th>
+                <th style="width: 22%;">Описание и назначение</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code danfoss">6-22</td>
+                <td><strong>Клемма 54, Мин. ток</strong></td>
+                <td class="col-default">4.00 мА</td>
+                <td class="col-rec">4.00 мА</td>
+                <td class="param-desc">Ток живого нуля датчика (переключатель A54 должен стоять в положении 'I').</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">6-23</td>
+                <td><strong>Клемма 54, Макс. ток</strong></td>
+                <td class="col-default">20.00 мА</td>
+                <td class="col-rec">20.00 мА</td>
+                <td class="param-desc">Верхняя граница токовой петли.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">6-24</td>
+                <td><strong>Клемма 54, Мин. значение</strong></td>
+                <td class="col-default">0.000</td>
+                <td class="col-rec">0.000 бар</td>
+                <td class="param-desc">Давление датчика при токе 4.00 мА.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">6-25</td>
+                <td><strong>Клемма 54, Макс. значение</strong></td>
+                <td class="col-default">100.000</td>
+                <td class="col-rec">10.000 бар</td>
+                <td class="param-desc">Давление датчика при токе 20.00 мА (шкала датчика).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">7-20</td>
+                <td><strong>Источник ОС ПИД-регулятора</strong></td>
+                <td class="col-default">[0] Нет</td>
+                <td class="col-rec">[2] Вход 54</td>
+                <td class="param-desc">[2] Аналоговый токовый вход клеммы 54.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">7-30</td>
+                <td><strong>Тип регулирования ПИД</strong></td>
+                <td class="col-default">[0] Нормальное</td>
+                <td class="col-rec">[0] Нормальное</td>
+                <td class="param-desc">[0] Нормальное (Direct: при падении давления частота растет).</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">7-33</td>
+                <td><strong>Пропорциональный коэфф. (Kp)</strong></td>
+                <td class="col-default">0.01</td>
+                <td class="col-rec">1.00 .. 1.80</td>
+                <td class="param-desc">Усиление контура ПИД. Заводское 0.01 слишком мало!</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">7-34</td>
+                <td><strong>Время интегрирования (Ti)</strong></td>
+                <td class="col-default">9999.0 с</td>
+                <td class="col-rec">3.00 .. 6.00 с</td>
+                <td class="param-desc">Постоянная времени интегратора. Заводское 9999 отключает интеграл!</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">14-20</td>
+                <td><strong>Режим автосброса после сбоя</strong></td>
+                <td class="col-default">[0] Ручной</td>
+                <td class="col-rec">[10] 10 попыток</td>
+                <td class="param-desc">Автоматический перезапуск после кратковременных просадок питающей сети.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">22-22</td>
+                <td><strong>Контроль минимальной скорости</strong></td>
+                <td class="col-default">[0] Выкл</td>
+                <td class="col-rec">[1] Включен</td>
+                <td class="param-desc">Активация алгоритма обнаружения нулевого расхода.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">22-40</td>
+                <td><strong>Минимальное время работы до сна</strong></td>
+                <td class="col-default">10 с</td>
+                <td class="col-rec">10 .. 15 с</td>
+                <td class="param-desc">Исключает ложное отключение насоса при скачках давления.</td>
+              </tr>
+              <tr>
+                <td class="col-code danfoss">22-44</td>
+                <td><strong>Разность давлений для пробуждения</strong></td>
+                <td class="col-default">10 %</td>
+                <td class="col-rec">5 .. 10 %</td>
+                <td class="param-desc">Снижение давления относительно уставки, запускающее пробуждение насоса.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ПРАКТИЧЕСКИЕ ПРИМЕРЫ -->
+          <div class="group-header danfoss" style="margin-top: 24px;">💡 Практические примеры применения и схемы для Danfoss VLT FC 302</div>
+
+          <!-- Пример 1 -->
+          <div class="example-box">
+            <div class="example-title danfoss">🚰 Пример 1: Артезианский скважинный насос с автоадаптацией AMA и режимом сна</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Погружной насос с длинным кабелем (70 м) качает воду в напорную магистраль. Требуется автоматическая адаптация к кабелю, защита упорного подшипника (не ниже 25 Гц) и автозасыпание.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Датчик давления 4-20 мА: Клемма 12 (+24V) -> (+) датчика; (-) датчика -> Клемма 54.<br>
+                Переключатель A54 (под дисплеем): переведен в положение 'I' (ток).<br>
+                Клемма 37 (Safe Stop): ОБЯЗАТЕЛЬНО соединена перемычкой с клеммой 12 (+24V) для снятия аварии Alarm 68!<br>
+                Пуск: перемычка между клеммой 12 (+24V) и клеммой 18 (Start).
+              </div>
+              <strong style="display: block; margin-top: 8px;">Порядок настройки:</strong>
+              1. Введите паспортные данные двигателя: <code>1-20</code>, <code>1-22</code>, <code>1-23</code>, <code>1-24</code>, <code>1-25</code>.<br>
+              2. Запустите адаптацию: установите <code>1-29 = [1]</code>, нажмите <strong>[Hand On]</strong>. Начнется замер сопротивления. После надписи 'Press OK' нажмите <strong>[OK]</strong>.<br>
+              3. Задайте контур процесса: <code>1-00 = [3]</code>, <code>1-03 = [1]</code>, <code>4-10 = [0]</code>, <code>4-12 = 25.0 Гц</code>.<br>
+              4. Настройте датчик: <code>6-22 = 4.00 мА</code>, <code>6-23 = 20.00 мА</code>, <code>6-24 = 0.0 бар</code>, <code>6-25 = 10.0 бар</code>.<br>
+              5. Настройте регулятор: <code>7-20 = [2]</code>, <code>7-33 = 1.20</code>, <code>7-34 = 4.00 с</code>, уставка в <code>3-10[0] = 4.000 бар</code>.<br>
+              6. Включите автоперезапуск: <code>14-20 = [10]</code>.<br>
+              7. Нажмите кнопку <strong>[Auto On]</strong> на панели LCP для старта авторежима!
+            </div>
+          </div>
+
+          <!-- Пример 2 -->
+          <div class="example-box">
+            <div class="example-title danfoss">🌀 Пример 2: Приточно-вытяжная установка с датчиком перепада давления 0-10 В</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Поддержание статического давления воздуха в воздуховоде по дифференциальному датчику 0-500 Па (сигнал 0-10 В).<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Датчик 0-10 В: (+) сигнала -> Клемма 53, (-) сигнала -> Клемма 55 (GND).<br>
+                Переключатель A53: установлен в положение 'U' (напряжение).<br>
+                Пуск: сухой контакт щита автоматики подключен к клеммам 12 (+24V) и 18.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>1-00 = [3]</code> (Замкнутый контур процесса)<br>
+              • <code>3-03 = 500.0</code> (Максимальное давление 500 Па)<br>
+              • <code>3-10[0] = 250.0</code> (Уставка 250 Па)<br>
+              • <code>6-10 = 0.0 В</code>, <code>6-11 = 10.0 В</code>, <code>6-14 = 0.0</code>, <code>6-15 = 500.0</code><br>
+              • <code>7-20 = [1]</code> (Источник ОС: вход 53)<br>
+              • <code>7-33 = 0.80</code>, <code>7-34 = 5.00 с</code>.
+            </div>
+          </div>
+
+          <!-- Пример 3 -->
+          <div class="example-box">
+            <div class="example-title danfoss">⚙️ Пример 3: Промышленный привод станка с потенциометром и реверсом</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Управление оборотами шпинделя станка ручным резистором (потенциометр 1-10 кОм) с переключателем направления вращения Вперед/Реверс.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px;">
+                Потенциометр: Крайний 1 -> Клемма 50 (+10V Out), Средний -> Клемма 53, Крайний 2 -> Клемма 55 (GND).<br>
+                Переключатель вращения: Вперед: замыкание клемм 12 и 18; Реверс: замыкание клемм 12 и 19.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>1-00 = [0]</code> (Разомкнутый контур управления скоростью)<br>
+              • <code>1-03 = [0]</code> (Постоянный момент для станочного оборудования)<br>
+              • <code>3-15 = [1]</code> (Задание частоты с аналогового входа 53)<br>
+              • <code>4-10 = [2]</code> (Разрешены оба направления вращения двигателя)<br>
+              • <code>5-10 = [8]</code> (Клемма 18: Пуск Вперед)<br>
+              • <code>5-11 = [10]</code> (Клемма 19: Реверсивный пуск).
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn-quick" style="padding: 10px 18px;" onclick="closeDanfossModal()">
+              Закрыть
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- МОДАЛЬНОЕ ОКНО: ПОШАГОВАЯ НАСТРОЙКА И ПАРАМЕТРЫ 900 SERIES / X9 -->
+  <div id="modalSeries900" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔧 Настройка и параметры: 900 Series / X9 (900M / 900G)</h2>
+        <button class="modal-close" onclick="closeSeries900Modal()">&times;</button>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab-btn active tab-s900" data-tab-target="pane-s900-0" onclick="switchModalTab('s900', 0)">⚡ Быстрая ПИД-настройка</button>
+        <button class="modal-tab-btn tab-s900" data-tab-target="pane-s900-1" onclick="switchModalTab('s900', 1)">📚 Все параметры и примеры</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- ==================== ВКЛАДКА 0: БЫСТРЫЙ ПИД ==================== -->
+        <div class="tab-pane active" id="pane-s900-0">
+          
+          <!-- ИНТЕРАКТИВНЫЙ РАСЧЕТ УСТАВКИ ДЛЯ СЕРИИ 900 -->
+          <div class="calc-box" style="border-color: #f59e0b;">
+            <div class="calc-box-title" style="color: #f59e0b;">🎯 Интерактивный расчет уставки для параметров F5-01 и F5-09</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              В частотниках Серии 900 уставка давления задается непосредственно в <strong>барах</strong> в параметре <code>F5-01</code>, а шкала датчика — в <code>F5-09</code>:
+            </p>
+            <div class="calc-row">
+              <div class="form-group" style="flex: 1; min-width: 130px;">
+                <label>Мин. датчика (бар)</label>
+                <input type="number" id="s900SensorMin" value="0" step="0.1" oninput="recalcSeries900()">
+              </div>
+              <div class="form-group" style="flex: 1; min-width: 130px;">
+                <label>Макс. шкала F5-09 (бар)</label>
+                <input type="number" id="s900SensorMax" value="10" step="0.1" oninput="recalcSeries900()">
+              </div>
+              <div class="form-group" style="flex: 1; min-width: 150px;">
+                <label>Нужное давление F5-01 (бар)</label>
+                <input type="number" id="s900TargetPressure" value="4.0" step="0.1" style="border-color: #f59e0b; font-weight: bold; color: #f59e0b;" oninput="recalcSeries900()">
+              </div>
+            </div>
+            <div style="background: #1e293b; padding: 10px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <span style="font-size: 0.95rem;">Установите в <strong>F5-01</strong> точное значение:</span>
+              <span id="s900ResultBar" style="font-size: 1.3rem; font-weight: 800; color: #f59e0b; font-family: monospace;">4.0 Bar (40.0 %)</span>
+            </div>
+          </div>
+
+          <!-- ШАГ 1: ПОДКЛЮЧЕНИЕ КЛЕММ И СХЕМА -->
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-badge" style="background: #d97706;">1</div>
+              <h3>Подключение клемм управления и датчика давления</h3>
+            </div>
+            <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5; display: flex; flex-direction: column; gap: 8px;">
+              <div>Частотники Серии 900 выпускаются в двух исполнениях: <strong>900M (Mini Type)</strong> и <strong>900G (General Type)</strong>. Схемы подключения для них следующие:</div>
+              
+              <div style="background: #1e293b; padding: 10px; border-radius: 8px;">
+                <strong style="color: #f59e0b;">А. Для компактного исполнения 900M (Mini Type):</strong>
+                <div class="wiring-box" style="margin-top: 6px; border-left-color: #f59e0b;">
+                  • <strong>Клемма DC:</strong> положительное напряжение +24В (при параметре <code>F0-06 = 2</code>!) -> подключить к (+) датчика давления.<br>
+                  • <strong>Клемма AI:</strong> вход аналогового сигнала -> подключить к (-) датчика давления.<br>
+                  • <strong>Клемма GND:</strong> общий провод аналоговой земли.<br>
+                  • <strong>Команда ПУСК:</strong> сухой контакт (тумблер) между клеммой <code>DI1</code> и клеммой <code>GND</code>.
+                </div>
+              </div>
+
+              <div style="background: #1e293b; padding: 10px; border-radius: 8px;">
+                <strong style="color: #f59e0b;">Б. Для стандартного исполнения 900G (General Type):</strong>
+                <div class="wiring-box" style="margin-top: 6px; border-left-color: #f59e0b;">
+                  • <strong>Клемма 24V:</strong> источник +24В постоянного тока -> подключить к (+) датчика давления.<br>
+                  • <strong>Клемма AI1:</strong> аналоговый токовый вход -> подключить к (-) датчика давления.<br>
+                  • <strong>Перемычка COM - GND:</strong> ОБЯЗАТЕЛЬНО соединить для общей точки измерений!<br>
+                  • <strong>Команда ПУСК:</strong> сухой контакт (тумблер) между клеммами <code>DI1</code> и <code>COM</code>.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ШАГ 2: БАЗОВЫЕ НАСТРОЙКИ (ГРУППА F0) -->
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-badge" style="background: #d97706;">2</div>
+              <h3>Базовые параметры привода (Группа F0)</h3>
+            </div>
+            <table class="param-table">
+              <thead>
+                <tr><th>Параметр</th><th>Значение</th><th>Назначение</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-00</td>
+                  <td class="param-val">1</td>
+                  <td>Источник команды ПУСК: внешние клеммы (DI1). <em>(Для пуска с клавиатуры оставьте 0)</em></td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-01</td>
+                  <td class="param-val">6</td>
+                  <td><strong>Режим водоснабжения постоянного давления</strong> (Constant pressure water supply)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-04</td>
+                  <td class="param-val">10.0 с</td>
+                  <td>Время разгона (Ramp up, плавный пуск насоса)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-05</td>
+                  <td class="param-val">10.0 с</td>
+                  <td>Время замедления (Ramp down, предотвращение гидроудара)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-06</td>
+                  <td class="param-val">2 (24V)</td>
+                  <td>Напряжение выхода клеммы DC (для 900M): <code>2: 24В</code> для питания датчика</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-07</td>
+                  <td class="param-val">0002</td>
+                  <td>Формат аналогового сигнала: младший разряд (AI1/AI) = <strong>2 (сигнал 4-20 мА)</strong></td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-08</td>
+                  <td class="param-val">0</td>
+                  <td>Способ остановки: замедление по рампе (Ramp to stop)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-09</td>
+                  <td class="param-val">50.0 Гц</td>
+                  <td>Верхний предел рабочей частоты двигателя</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-10</td>
+                  <td class="param-val">20.0 Гц</td>
+                  <td>Нижний предел частоты (защита насоса от перегрева на закрытую задвижку)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F0-14</td>
+                  <td class="param-val">0</td>
+                  <td>Направление вращения: 0 (U-V-W), 1 (U-W-V — изменение вращения без перекидки кабеля)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ШАГ 3: НАСТРОЙКА ДАТЧИКА И ПИД (ГРУППА F5) -->
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-badge" style="background: #d97706;">3</div>
+              <h3>Калибровка датчика и настройка ПИД (Группа F5)</h3>
+            </div>
+            <table class="param-table">
+              <thead>
+                <tr><th>Параметр</th><th>Значение</th><th>Назначение</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-00</td>
+                  <td class="param-val">0</td>
+                  <td>Источник уставки ПИД: цифровая уставка из параметра F5-01</td>
+                </tr>
+                <tr id="rowS900F501" style="background: rgba(245, 158, 11, 0.1);">
+                  <td class="param-code" style="color: #f59e0b;">F5-01</td>
+                  <td class="param-val" id="hintS900F501">4.0 Bar</td>
+                  <td><strong>Целевое поддерживаемое давление в барах!</strong></td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-02</td>
+                  <td class="param-val">0 (AI1 / AI)</td>
+                  <td>Источник обратной связи ПИД: клемма AI (для 900M) или AI1 (для 900G)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-03</td>
+                  <td class="param-val">0</td>
+                  <td>Направление регулирования: 0: Прямое (давление падает -> обороты растут)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-04</td>
+                  <td class="param-val">20.0</td>
+                  <td>Пропорциональный коэффициент усиления Kp (при колебаниях снизить до 10-15)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-05</td>
+                  <td class="param-val">0.80 с</td>
+                  <td>Время интегрирования Ki (при раскачке поднять до 1.5 - 2.5 с)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-08</td>
+                  <td class="param-val">1 (4~20mA)</td>
+                  <td><strong>Тип датчика: 1: токовый вход 4–20 мА</strong> <em>(0: 0-10В, 2: 0-5В)</em></td>
+                </tr>
+                <tr id="rowS900F509">
+                  <td class="param-code" style="color: #f59e0b;">F5-09</td>
+                  <td class="param-val" id="hintS900F509">10.0 Bar</td>
+                  <td><strong>Верхний предел шкалы используемого датчика давления (в барах)</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ШАГ 4: СПЯЩИЙ РЕЖИМ И ЗАЩИТА ОТ СУХОГО ХОДА -->
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-badge" style="background: #d97706;">4</div>
+              <h3>Спящий режим и защита от сухого хода (Группа F5)</h3>
+            </div>
+            <table class="param-table">
+              <thead>
+                <tr><th>Параметр</th><th>Значение</th><th>Назначение</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-12</td>
+                  <td class="param-val">22.0 Гц</td>
+                  <td>Частота перехода в спящий режим (Dormant Frequency) при нулевом расходе</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-13</td>
+                  <td class="param-val">10.0 с</td>
+                  <td>Задержка засыпания: время работы на частоте сна до полной остановки</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-14</td>
+                  <td class="param-val">8 %</td>
+                  <td>Допустимое отклонение давления для режима засыпания</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-17</td>
+                  <td class="param-val">80 %</td>
+                  <td><strong>Порог пробуждения:</strong> 80% от уставки (при уставке 4.0 бар проснется при 3.2 бар)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-18</td>
+                  <td class="param-val">200 %</td>
+                  <td>Защита от избыточного давления: превышение 200% вызывает ошибку Err53</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-19</td>
+                  <td class="param-val">15.0 с</td>
+                  <td>Время детекции сухого хода насоса (Water shortage detection time)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-20</td>
+                  <td class="param-val">48.0 Гц</td>
+                  <td>Частота контроля сухого хода (насос вышел на максимум, а давления нет)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-22</td>
+                  <td class="param-val">20 %</td>
+                  <td>Порог давления сухого хода (если давление ниже 20% — выдается тревога A52)</td>
+                </tr>
+                <tr>
+                  <td class="param-code" style="color: #f59e0b;">F5-23</td>
+                  <td class="param-val">20 мин</td>
+                  <td>Время автоматического повторного перезапуска после аварии сухого хода</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- ШАГ 5: СОВЕТЫ ПО ПУСКОНАЛАДКЕ -->
+          <div class="step-card">
+            <div class="step-header">
+              <div class="step-badge" style="background: #d97706;">5</div>
+              <h3>Советы по пусконаладке Серии 900</h3>
+            </div>
+            <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5; display: flex; flex-direction: column; gap: 6px;">
+              <div>• <strong>Насос крутит, но давление не растет:</strong> измените параметр <code>F0-14</code> с 0 на 1 (это инвертирует фазы мотора без перекоммутации кабеля).</div>
+              <div>• <strong>Питание датчика 24В на 900M:</strong> если на клемме DC нет 24В, проверьте параметр <code>F0-06 = 2</code>.</div>
+              <div>• <strong>Стрелка манометра дергается:</strong> уменьшите пропорциональный коэффициент <code>F5-04</code> до 12.0–15.0 и увеличьте время интегрирования <code>F5-05</code> до 1.5–2.0 с.</div>
+              <div>• <strong>Насос не засыпает:</strong> поднимите частоту сна <code>F5-12</code> до 25.0–28.0 Гц.</div>
+              <div>• <strong>Сброс на заводские:</strong> параметр <code>F0-24 = 1</code> сбрасывает все настройки к заводским значениям.</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn-quick" style="background: #d97706; color: #fff; font-weight: 700; padding: 10px 18px;" onclick="copySeries900Summary()">
+              📋 Скопировать список параметров
+            </button>
+            <button class="btn-quick" style="padding: 10px 18px;" onclick="closeSeries900Modal()">
+              Закрыть
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ==================== ВКЛАДКА 1: ВСЕ ПАРАМЕТРЫ И ПРИМЕРЫ ==================== -->
+        <div class="tab-pane" id="pane-s900-1">
+          <div style="background: #1e293b; padding: 14px 18px; border-radius: 10px; border-left: 4px solid #f59e0b; font-size: 0.92rem; line-height: 1.5;">
+            <strong>📘 Полный справочник параметров 900 Series AC Drive (900M / 900G)</strong><br>
+            Частотный преобразователь Серии 900 использует функциональные группы <code>F0</code>–<code>FA</code> и группу параметров оперативного мониторинга <code>U0</code>. Ниже представлена полная справочная таблица параметров и готовые схемы автоматизации.
+          </div>
+
+          <!-- ГРУППА F0 -->
+          <div class="group-header s900">⚡ Группа F0: Базовые параметры управления и частоты</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и диапазон</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code s900">F0-00</td>
+                <td><strong>Выбор источника команды</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">1 (клеммы)</td>
+                <td class="param-desc">0: Панель управления<br>1: Клеммы управления DI<br>2: Связь Modbus RTU (RS485)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-01</td>
+                <td><strong>Основной источник задания частоты</strong></td>
+                <td class="col-default">1 (потенциометр)</td>
+                <td class="col-rec">6 (Водоснабжение)</td>
+                <td class="param-desc">0: Код / память<br>1: Потенциометр панели<br>2: Аналоговый вход AI1<br>6: Водоснабжение постоянного давления<br>7: Универсальный ПИД</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-04</td>
+                <td><strong>Время разгона (Acceleration Time)</strong></td>
+                <td class="col-default">Зависит от мод.</td>
+                <td class="col-rec">10.0 с</td>
+                <td class="param-desc">Время разгона от 0 Гц до максимальной частоты F0-09 (0.0..500.0 с).</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-05</td>
+                <td><strong>Время торможения (Deceleration Time)</strong></td>
+                <td class="col-default">Зависит от мод.</td>
+                <td class="col-rec">10.0 с</td>
+                <td class="param-desc">Время замедления от F0-09 до 0 Гц (0.0..500.0 с).</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-06</td>
+                <td><strong>Выходное напряжение клеммы DC</strong></td>
+                <td class="col-default">1 (10V)</td>
+                <td class="col-rec">2 (24V)</td>
+                <td class="param-desc">0: 5 В<br>1: 10 В DC<br>2: 24 В DC (для питания датчиков давления 4-20 мА)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-07</td>
+                <td><strong>Формат аналоговых сигналов AI/AO</strong></td>
+                <td class="col-default">0000</td>
+                <td class="col-rec">0002 (4-20 мА)</td>
+                <td class="param-desc">0: 0-10В, 1: 0-20мА, 2: 4-20мА, 3: 20-4мА, 4: 20-0мА, 5: 10-0В.<br>Младший разряд — AI1, десятки — AI2, сотни — AO1, тысячи — AO2.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-08</td>
+                <td><strong>Способ остановки двигателя</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0 (по рампе)</td>
+                <td class="param-desc">0: Останов по рампе замедления<br>1: Останов самовыбегом (Coast to stop)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-09</td>
+                <td><strong>Верхний предел частоты</strong></td>
+                <td class="col-default">50.0 Гц</td>
+                <td class="col-rec">50.0 Гц</td>
+                <td class="param-desc">Максимальная выходная частота преобразователя (до 599.9 Гц).</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-10</td>
+                <td><strong>Нижний предел частоты</strong></td>
+                <td class="col-default">0.0 Гц</td>
+                <td class="col-rec">20.0 Гц</td>
+                <td class="param-desc">Минимальная рабочая частота (защита насоса от сухого трения и перегрева).</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-14</td>
+                <td><strong>Порядок чередования фаз</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0 (U-V-W)</td>
+                <td class="param-desc">0: Прямое (U-V-W)<br>1: Инверсное (U-W-V — изменение вращения без перекидки проводов)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F0-24</td>
+                <td><strong>Сброс на заводские параметры</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0</td>
+                <td class="param-desc">1: Возврат всех настроек частотника к заводским значениям.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА F1 -->
+          <div class="group-header s900">🔌 Группа F1: Дискретные входы DI, реле и аналоговые каналы</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Типичное</th>
+                <th style="width: 22%;">Описание и функция</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code s900">F1-00</td>
+                <td><strong>Функция клеммы DI1</strong></td>
+                <td class="col-default">1</td>
+                <td class="col-rec">1 (Пуск Вперед)</td>
+                <td class="param-desc">1: Вращение Вперед (FWD)<br>2: Вращение Назад (REV)<br>3: Трехпроводной пуск</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F1-01</td>
+                <td><strong>Функция клеммы DI2</strong></td>
+                <td class="col-default">2</td>
+                <td class="col-rec">2 (Реверс) / 7</td>
+                <td class="param-desc">2: Реверс REV<br>7: Сброс аварии (Fault Reset)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F1-02</td>
+                <td><strong>Функция клеммы DI3</strong></td>
+                <td class="col-default">8</td>
+                <td class="col-rec">3 (3-проводной Стоп) / 7</td>
+                <td class="param-desc">3: Кнопка Стоп для 3-проводной схемы<br>8: Многоскоростная команда 1</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F1-06</td>
+                <td><strong>Режим клеммного управления</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0 (2-пров) / 2</td>
+                <td class="param-desc">0: 2-проводной режим 1<br>1: 2-проводной режим 2<br>2: 3-проводной импульсный режим 1<br>3: 3-проводной режим 2</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F1-08</td>
+                <td><strong>Функция выходного реле TA/TB</strong></td>
+                <td class="col-default">1</td>
+                <td class="col-rec">2 (Авария) / 1 (RUN)</td>
+                <td class="param-desc">1: Привод в работе (RUN)<br>2: Авария ПЧ (Fault)<br>3: Готов к работе (Ready)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F1-24</td>
+                <td><strong>Усиление входа AI1 (Gain)</strong></td>
+                <td class="col-default">1.00</td>
+                <td class="col-rec">1.00</td>
+                <td class="param-desc">Масштабный коэффициент аналогового входа (до 20.00).</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F1-25</td>
+                <td><strong>Смещение входа AI1 (Offset)</strong></td>
+                <td class="col-default">0.00 В</td>
+                <td class="col-rec">0.00 В</td>
+                <td class="param-desc">Аппаратная калибровка нуля аналогового сигнала (+/-10В).</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ГРУППА F5 -->
+          <div class="group-header s900">🎯 Группа F5: Водоснабжение, ПИД и спящий режим</div>
+          <table class="param-table">
+            <thead>
+              <tr>
+                <th style="width: 14%;">Код</th>
+                <th style="width: 32%;">Наименование</th>
+                <th style="width: 16%;">Заводское</th>
+                <th style="width: 16%;">Рекомендуемое</th>
+                <th style="width: 22%;">Описание и регулировка</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="col-code s900">F5-00</td>
+                <td><strong>Источник задания ПИД</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0 (параметр F5-01)</td>
+                <td class="param-desc">0: Цифровая уставка F5-01<br>1: Вход AI1<br>3: Потенциометр панели</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-01</td>
+                <td><strong>Уставка давления процесса</strong></td>
+                <td class="col-default">3.5 Bar</td>
+                <td class="col-rec">По расчету Bar</td>
+                <td class="param-desc">Целевое поддерживаемое давление в реальных барах (0.1..1000.0 Bar)!</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-02</td>
+                <td><strong>Источник обратной связи ПИД</strong></td>
+                <td class="col-default">0</td>
+                <td class="col-rec">0 (AI1 / AI)</td>
+                <td class="param-desc">0: Вход AI1 (или AI на 900M)<br>1: Вход AI2<br>2: Связь RS485</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-04</td>
+                <td><strong>Коэффициент пропорциональности Kp</strong></td>
+                <td class="col-default">20.0</td>
+                <td class="col-rec">15.0 .. 25.0</td>
+                <td class="param-desc">Быстродействие контура давления. При автоколебаниях уменьшить.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-05</td>
+                <td><strong>Время интегрирования Ki</strong></td>
+                <td class="col-default">0.80 с</td>
+                <td class="col-rec">0.80 .. 2.00 с</td>
+                <td class="param-desc">Устранение статической погрешности уставки.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-08</td>
+                <td><strong>Тип датчика давления</strong></td>
+                <td class="col-default">0 (0-10В)</td>
+                <td class="col-rec">1 (4~20 мА)</td>
+                <td class="param-desc">0: 0~10В<br>1: 4~20мА<br>2: 0~5В<br>3: 0.5В~4.5В (радиометрический)</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-09</td>
+                <td><strong>Шкала используемого датчика</strong></td>
+                <td class="col-default">16.0 Bar</td>
+                <td class="col-rec">Шкала (напр. 10 Bar)</td>
+                <td class="param-desc">Максимальное измеряемое давление датчика по его паспорту.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-12</td>
+                <td><strong>Частота спящего режима (Dormant)</strong></td>
+                <td class="col-default">20.0 Гц</td>
+                <td class="col-rec">22.0 .. 25.0 Гц</td>
+                <td class="param-desc">Частота, при снижении до которой насос переходит в режим сна.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-13</td>
+                <td><strong>Время задержки сна</strong></td>
+                <td class="col-default">0.0 с</td>
+                <td class="col-rec">10.0 .. 15.0 с</td>
+                <td class="param-desc">Задержка засыпания для фильтрации ложных колебаний водоразбора.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-17</td>
+                <td><strong>Давление пробуждения (Wake up)</strong></td>
+                <td class="col-default">80 %</td>
+                <td class="col-rec">80 .. 85 %</td>
+                <td class="param-desc">% от уставки давления. При падении ниже этого порога насос мгновенно просыпается.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-18</td>
+                <td><strong>Верхний предел давления</strong></td>
+                <td class="col-default">200 %</td>
+                <td class="col-rec">130 .. 150 %</td>
+                <td class="param-desc">Защита от разрыва труб. Превышение порога отключает ПЧ с ошибкой Err53.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-19</td>
+                <td><strong>Время контроля сухого хода</strong></td>
+                <td class="col-default">0.0 с</td>
+                <td class="col-rec">15.0 .. 30.0 с</td>
+                <td class="param-desc">Время работы без набора давления перед выдачей предупреждения A52.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-20</td>
+                <td><strong>Частота контроля сухого хода</strong></td>
+                <td class="col-default">45.0 Гц</td>
+                <td class="col-rec">48.0 Гц</td>
+                <td class="param-desc">Если ПЧ работает на этой частоте, а давление ниже F5-22 — выдается авария A52.</td>
+              </tr>
+              <tr>
+                <td class="col-code s900">F5-22</td>
+                <td><strong>Порог давления сухого хода</strong></td>
+                <td class="col-default">20 %</td>
+                <td class="col-rec">20 %</td>
+                <td class="param-desc">Процент от целевого давления, свидетельствующий об отсутствии воды.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- ПРАКТИЧЕСКИЕ ПРИМЕРЫ -->
+          <div class="group-header s900" style="margin-top: 24px;">💡 Практические схемы применения для Серии 900 / X9</div>
+
+          <!-- Пример 1 -->
+          <div class="example-box">
+            <div class="example-title s900">🚰 Пример 1: Насосная станция постоянного давления (ХВС) со спящим режимом</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Поддержание стабильного давления 4.0 бар при датчике 0–10 бар (4–20 мА) с автоматическим засыпанием при отсутствии водоразбора и защитой от сухого хода.<br>
+              <strong>Подключение (для 900M):</strong>
+              <div class="wiring-box" style="margin-top: 6px; border-left-color: #f59e0b;">
+                Клемма DC -> Контакт (+) датчика давления.<br>
+                Клемма AI -> Контакт (-) датчика давления.<br>
+                Клемма GND -> Общий провод.<br>
+                Команда ПУСК: тумблер между DI1 и GND.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>F0-00 = 1</code> (Пуск с клемм DI1-GND)<br>
+              • <code>F0-01 = 6</code> (Режим постоянного давления Constant pressure water supply)<br>
+              • <code>F0-06 = 2</code> (Выходное напряжение клеммы DC: 24 В)<br>
+              • <code>F0-07 = 0002</code> (Формат аналогового входа AI = 4–20 мА)<br>
+              • <code>F0-10 = 20.0</code> (Нижний предел частоты 20 Гц)<br>
+              • <code>F5-00 = 0</code>, <code>F5-01 = 4.0</code> (Уставка давления 4.0 бар)<br>
+              • <code>F5-02 = 0</code> (Обратная связь с входа AI)<br>
+              • <code>F5-04 = 20.0</code>, <code>F5-05 = 0.80 с</code> (Параметры ПИД)<br>
+              • <code>F5-08 = 1</code> (Тип датчика: 4–20 мА)<br>
+              • <code>F5-09 = 10.0</code> (Шкала датчика 10.0 бар)<br>
+              • <code>F5-12 = 23.0 Гц</code>, <code>F5-13 = 12.0 с</code>, <code>F5-17 = 80 %</code> (Спящий режим и пробуждение)<br>
+              • <code>F5-19 = 15.0 с</code>, <code>F5-20 = 48.0 Гц</code>, <code>F5-22 = 20 %</code>, <code>F5-23 = 20 мин</code> (Защита от сухого хода A52).
+            </div>
+          </div>
+
+          <!-- Пример 2 -->
+          <div class="example-box">
+            <div class="example-title s900">🌀 Пример 2: Вентилятор вытяжки с регулировкой потенциометром 0–10 В</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Ручное плавное управление оборотами вентилятора внешним переменным резистором 1–5 кОм на дверце щита.<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px; border-left-color: #f59e0b;">
+                Потенциометр: Крайний контакт 1 -> +10V, Средний контакт (движок) -> AI1, Крайний контакт 2 -> GND.<br>
+                Разрешение работы: контакт системы автоматики/пожарной сигнализации -> DI1 и COM.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>F0-00 = 1</code> (Пуск с клемм DI1-COM)<br>
+              • <code>F0-01 = 2</code> (Задание частоты по напряжению 0–10 В с клеммы AI1)<br>
+              • <code>F0-04 = 15.0 с</code>, <code>F0-05 = 15.0 с</code> (Плавный разгон крыльчатки вентилятора)<br>
+              • <code>F0-09 = 50.0 Гц</code> (Максимальная частота).
+            </div>
+          </div>
+
+          <!-- Пример 3 -->
+          <div class="example-box">
+            <div class="example-title s900">🔘 Пример 3: Трехпроводное кнопочное управление (Кнопки Пуск NO и Стоп NC)</div>
+            <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.5;">
+              <strong>Задача:</strong> Запуск привода импульсной кнопкой «Пуск» (нормально открытая) и останов кнопкой «Стоп» (нормально закрытая).<br>
+              <strong>Подключение:</strong>
+              <div class="wiring-box" style="margin-top: 6px; border-left-color: #f59e0b;">
+                Кнопка «Пуск» (НО): подключена между клеммами DI1 и GND (или COM).<br>
+                Кнопка «Стоп» (НЗ): подключена между клеммами DI3 и GND (или COM).<br>
+                Кнопка «Реверс» (при необходимости): между клеммами DI2 и GND.
+              </div>
+              <strong style="display: block; margin-top: 8px;">Список параметров для ввода:</strong>
+              • <code>F0-00 = 1</code> (Управление с внешних клемм)<br>
+              • <code>F1-06 = 2</code> (Трехпроводной режим 1 Three-wire type 1)<br>
+              • <code>F1-00 = 1</code> (DI1: Пуск Вперед)<br>
+              • <code>F1-01 = 2</code> (DI2: Реверс)<br>
+              • <code>F1-02 = 3</code> (DI3: Разрешение работы / Кнопка Стоп).
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn-quick" style="padding: 10px 18px;" onclick="closeSeries900Modal()">
+              Закрыть
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Разработано для инженеров КИПиА, АСУ ТП и наладчиков частотных преобразователей • 2026
+  </footer>
+</div>
+
+<script>
+  // DOM Элементы конфигурации
+  const signalTypeSelect = document.getElementById('signalType');
+  const unitPresetSelect = document.getElementById('unitPreset');
+  const freqPresetSelect = document.getElementById('freqPreset');
+
+  const sigMinInput = document.getElementById('sigMin');
+  const sigMaxInput = document.getElementById('sigMax');
+  const physMinInput = document.getElementById('physMin');
+  const physMaxInput = document.getElementById('physMax');
+  const freqMinInput = document.getElementById('freqMin');
+  const freqMaxInput = document.getElementById('freqMax');
+
+  const lblSignalUnit = document.getElementById('lblSignalUnit');
+  const lblSignalUnit2 = document.getElementById('lblSignalUnit2');
+  const lblPhysUnitMin = document.getElementById('lblPhysUnitMin');
+  const lblPhysUnitMax = document.getElementById('lblPhysUnitMax');
+  const unitSig = document.getElementById('unitSig');
+  const unitPhys = document.getElementById('unitPhys');
+  const badgePhys = document.getElementById('badgePhys');
+  const thSignal = document.getElementById('thSignal');
+  const thPhys = document.getElementById('thPhys');
+
+  // DOM Элементы ввода значений
+  const valSignal = document.getElementById('valSignal');
+  const valPercent = document.getElementById('valPercent');
+  const valPhys = document.getElementById('valPhys');
+  const valFreq = document.getElementById('valFreq');
+  const mainSlider = document.getElementById('mainSlider');
+
+  // Индикация
+  const progressBar = document.getElementById('progressBar');
+  const dispPercent = document.getElementById('dispPercent');
+  const dispSummary = document.getElementById('dispSummary');
+  const alarmStatus = document.getElementById('alarmStatus');
+  const calibTbody = document.getElementById('calibTbody');
+
+  let currentPhysName = "бар";
+  let currentSigUnit = "мА";
+
+  // Обработка пресетов сигналов
+  signalTypeSelect.addEventListener('change', () => {
+    const val = signalTypeSelect.value;
+    if (val === '4-20') {
+      sigMinInput.value = 4;
+      sigMaxInput.value = 20;
+      setSignalUnit('мА');
+    } else if (val === '0-20') {
+      sigMinInput.value = 0;
+      sigMaxInput.value = 20;
+      setSignalUnit('мА');
+    } else if (val === '0-10') {
+      sigMinInput.value = 0;
+      sigMaxInput.value = 10;
+      setSignalUnit('В');
+    } else if (val === '2-10') {
+      sigMinInput.value = 2;
+      sigMaxInput.value = 10;
+      setSignalUnit('В');
+    }
+    updateAllFromPercent(parseFloat(valPercent.value));
+    renderTable();
+  });
+
+  function setSignalUnit(unit) {
+    currentSigUnit = unit;
+    if (lblSignalUnit) lblSignalUnit.textContent = unit;
+    if (lblSignalUnit2) lblSignalUnit2.textContent = unit;
+    if (unitSig) unitSig.textContent = unit;
+    if (thSignal) thSignal.textContent = `Сигнал (${unit})`;
+  }
+
+  // Обработка пресетов физической величины
+  unitPresetSelect.addEventListener('change', () => {
+    const val = unitPresetSelect.value;
+    let min = 0, max = 10, unit = "бар", title = "Давление";
+
+    if (val === 'pressure_10') { min = 0; max = 10; unit = "бар"; title = "Давление"; }
+    else if (val === 'pressure_16') { min = 0; max = 16; unit = "бар"; title = "Давление"; }
+    else if (val === 'pressure_6') { min = 0; max = 6; unit = "бар"; title = "Давление"; }
+    else if (val === 'pressure_25') { min = 0; max = 25; unit = "бар"; title = "Давление"; }
+    else if (val === 'temp_100') { min = 0; max = 100; unit = "°C"; title = "Температура"; }
+    else if (val === 'temp_150') { min = -50; max = 150; unit = "°C"; title = "Температура"; }
+    else if (val === 'flow_100') { min = 0; max = 100; unit = "м³/ч"; title = "Расход"; }
+    else if (val === 'level_5') { min = 0; max = 5; unit = "м"; title = "Уровень"; }
+
+    if (val !== 'custom') {
+      physMinInput.value = min;
+      physMaxInput.value = max;
+      currentPhysName = unit;
+      if (lblPhysUnitMin) lblPhysUnitMin.textContent = unit;
+      if (lblPhysUnitMax) lblPhysUnitMax.textContent = unit;
+      if (unitPhys) unitPhys.textContent = unit;
+      if (badgePhys) badgePhys.textContent = title.toUpperCase();
+      if (thPhys) thPhys.textContent = `${title} (${unit})`;
+    }
+    updateAllFromPercent(parseFloat(valPercent.value));
+    renderTable();
+  });
+
+  // Обработка пресетов частотника
+  freqPresetSelect.addEventListener('change', () => {
+    const val = freqPresetSelect.value;
+    if (val === '0-50') {
+      freqMinInput.value = 0;
+      freqMaxInput.value = 50;
+    } else if (val === '0-60') {
+      freqMinInput.value = 0;
+      freqMaxInput.value = 60;
+    } else if (val === '20-50') {
+      freqMinInput.value = 20;
+      freqMaxInput.value = 50;
+    }
+    updateAllFromPercent(parseFloat(valPercent.value));
+    renderTable();
+  });
+
+  // Слушатели ручной смены настроек
+  [sigMinInput, sigMaxInput, physMinInput, physMaxInput, freqMinInput, freqMaxInput].forEach(inp => {
+    inp.addEventListener('input', () => {
+      updateAllFromPercent(parseFloat(valPercent.value));
+      renderTable();
+    });
+  });
+
+  // ==================== РАСЧЕТЫ ====================
+
+  function getLimits() {
+    return {
+      sMin: parseFloat(sigMinInput.value) || 0,
+      sMax: parseFloat(sigMaxInput.value) || 20,
+      pMin: parseFloat(physMinInput.value) || 0,
+      pMax: parseFloat(physMaxInput.value) || 10,
+      fMin: parseFloat(freqMinInput.value) || 0,
+      fMax: parseFloat(freqMaxInput.value) || 50
+    };
+  }
+
+  // Расчет по проценту
+  function updateAllFromPercent(pct, skipSelf = false) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const ratio = pct / 100;
+
+    const signal = sMin + ratio * (sMax - sMin);
+    const phys = pMin + ratio * (pMax - pMin);
+    const freq = fMin + ratio * (fMax - fMin);
+
+    valSignal.value = signal.toFixed(3);
+    valPhys.value = phys.toFixed(3);
+    valFreq.value = freq.toFixed(2);
+    if (!skipSelf) {
+      valPercent.value = pct.toFixed(2);
+    }
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, signal, phys, freq);
+  }
+
+  // Расчет по сигналу
+  function updateAllFromSignal(sig) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const span = sMax - sMin;
+    const ratio = span !== 0 ? (sig - sMin) / span : 0;
+    const pct = ratio * 100;
+
+    const phys = pMin + ratio * (pMax - pMin);
+    const freq = fMin + ratio * (fMax - fMin);
+
+    valPercent.value = pct.toFixed(2);
+    valPhys.value = phys.toFixed(3);
+    valFreq.value = freq.toFixed(2);
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, sig, phys, freq);
+  }
+
+  // Расчет по физ. величине
+  function updateAllFromPhys(phys) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const span = pMax - pMin;
+    const ratio = span !== 0 ? (phys - pMin) / span : 0;
+    const pct = ratio * 100;
+
+    const signal = sMin + ratio * (sMax - sMin);
+    const freq = fMin + ratio * (fMax - fMin);
+
+    valSignal.value = signal.toFixed(3);
+    valPercent.value = pct.toFixed(2);
+    valFreq.value = freq.toFixed(2);
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, signal, phys, freq);
+  }
+
+  // Расчет по частоте
+  function updateAllFromFreq(freq) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const span = fMax - fMin;
+    const ratio = span !== 0 ? (freq - fMin) / span : 0;
+    const pct = ratio * 100;
+
+    const signal = sMin + ratio * (sMax - sMin);
+    const phys = pMin + ratio * (pMax - pMin);
+
+    valSignal.value = signal.toFixed(3);
+    valPercent.value = pct.toFixed(2);
+    valPhys.value = phys.toFixed(3);
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, signal, phys, freq);
+  }
+
+  // Визуальное обновление индикатора и статуса NAMUR NE43
+  function updateVisuals(pct, signal, phys, freq) {
+    const clampedPct = Math.max(0, Math.min(100, pct));
+    progressBar.style.width = clampedPct + '%';
+    dispPercent.textContent = pct.toFixed(1) + '%';
+    dispSummary.textContent = `${signal.toFixed(2)} ${currentSigUnit} = ${phys.toFixed(2)} ${currentPhysName} = ${freq.toFixed(1)} Гц`;
+
+    const { sMin, sMax } = getLimits();
+
+    // Оценка статуса (токовая петля 4-20 мА)
+    if (sMin === 4 && sMax === 20 && currentSigUnit === 'мА') {
+      if (signal < 3.6) {
+        alarmStatus.className = "alarm-status status-broken";
+        alarmStatus.innerHTML = `⚠️ ОБРЫВ ЛИНИИ / ОТКАЗ ДАТЧИКА (I = ${signal.toFixed(2)} мА &lt; 3.6 мА)`;
+      } else if (signal >= 3.6 && signal < 3.99) {
+        alarmStatus.className = "alarm-status status-overflow";
+        alarmStatus.innerHTML = `⚠️ Сигнал ниже диапазона 4 мА (I = ${signal.toFixed(2)} мА, возможно отрицательный дрейф)`;
+      } else if (signal > 20.5 && signal <= 21.0) {
+        alarmStatus.className = "alarm-status status-overflow";
+        alarmStatus.innerHTML = `⚠️ Сигнал выше диапазона 20 мА (I = ${signal.toFixed(2)} мА, перегрузка датчика)`;
+      } else if (signal > 21.0) {
+        alarmStatus.className = "alarm-status status-broken";
+        alarmStatus.innerHTML = `🚨 НЕИСПРАВНОСТЬ / КЗ / ЗАШКАЛ (I = ${signal.toFixed(2)} мА &gt; 21.0 мА)`;
+      } else {
+        alarmStatus.className = "alarm-status status-normal";
+        alarmStatus.innerHTML = `✅ Сигнал в пределах нормы (нормальная работа датчика)`;
+      }
+    } else {
+      if (pct < 0 || pct > 100) {
+        alarmStatus.className = "alarm-status status-overflow";
+        alarmStatus.innerHTML = `⚠️ Значение вне калиброванного диапазона (0 ... 100%)`;
+      } else {
+        alarmStatus.className = "alarm-status status-normal";
+        alarmStatus.innerHTML = `✅ Сигнал в пределах нормы`;
+      }
+    }
+  }
+
+  // События ввода
+  valSignal.addEventListener('input', () => updateAllFromSignal(parseFloat(valSignal.value) || 0));
+  valPercent.addEventListener('input', () => updateAllFromPercent(parseFloat(valPercent.value) || 0, true));
+  valPhys.addEventListener('input', () => updateAllFromPhys(parseFloat(valPhys.value) || 0));
+  valFreq.addEventListener('input', () => updateAllFromFreq(parseFloat(valFreq.value) || 0));
+
+  mainSlider.addEventListener('input', () => {
+    updateAllFromPercent(parseFloat(mainSlider.value));
+  });
+
+  // Быстрые кнопки
+  window.setByPercent = function(pct) {
+    updateAllFromPercent(pct);
+  };
+
+  window.setBySignal = function(sig) {
+    valSignal.value = sig;
+    updateAllFromSignal(sig);
+  };
+
+  // Построение таблицы калибровки
+  function renderTable() {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    calibTbody.innerHTML = '';
+
+    const steps = [0, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 100];
+
+    steps.forEach(pct => {
+      const ratio = pct / 100;
+      const sig = sMin + ratio * (sMax - sMin);
+      const phys = pMin + ratio * (pMax - pMin);
+      const freq = fMin + ratio * (fMax - fMin);
+
+      let statusBadge = '🟢 Норма';
+      if (pct === 0) statusBadge = '🔹 Минимум';
+      if (pct === 50) statusBadge = '🔹 Среднее';
+      if (pct === 100) statusBadge = '🔹 Максимум';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${pct}%</strong></td>
+        <td>${sig.toFixed(2)} ${currentSigUnit}</td>
+        <td>${phys.toFixed(2)} ${currentPhysName}</td>
+        <td>${freq.toFixed(2)} Гц</td>
+        <td>${statusBadge}</td>
+      `;
+      tr.addEventListener('click', () => {
+        updateAllFromPercent(pct);
+      });
+      calibTbody.appendChild(tr);
+    });
+  }
+
+  // Инициализация при старте
+  updateAllFromPercent(50);
+  renderTable();
+
+  // Регистрация Service Worker для Android PWA (автономная работа)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // Обработка кнопки установки на телефон Android
+  let deferredPrompt;
+  const btnInstallApp = document.getElementById('btnInstallApp');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstallApp) {
+      btnInstallApp.style.display = 'inline-block';
+      btnInstallApp.addEventListener('click', () => {
+        btnInstallApp.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+        });
+      });
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (btnInstallApp) btnInstallApp.style.display = 'none';
+  });
+
+  // Логика мастера настройки CHINT NVF2G
+  const modalNvf2g = document.getElementById('modalNvf2g');
+  const nvfSensorMin = document.getElementById('nvfSensorMin');
+  const nvfSensorMax = document.getElementById('nvfSensorMax');
+  const nvfTargetPressure = document.getElementById('nvfTargetPressure');
+  const nvfResultPct = document.getElementById('nvfResultPct');
+  const rowF902 = document.getElementById('rowF902');
+
+  function openNvf2gModal() {
+    if (physMinInput && physMaxInput) {
+      nvfSensorMin.value = physMinInput.value;
+      nvfSensorMax.value = physMaxInput.value;
+    }
+    if (valPhys) {
+      const curVal = parseFloat(String(valPhys.value).replace(',', '.')) || 4.0;
+      nvfTargetPressure.value = curVal.toFixed(1);
+    }
+    recalcNvf2g();
+    modalNvf2g.classList.add('active');
+  }
+
+  function closeNvf2gModal() {
+    modalNvf2g.classList.remove('active');
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modalNvf2g) {
+      closeNvf2gModal();
+    }
+  });
+
+  function recalcNvf2g() {
+    const min = parseFloat(String(nvfSensorMin.value).replace(',', '.')) || 0;
+    const max = parseFloat(String(nvfSensorMax.value).replace(',', '.')) || 10;
+    const target = parseFloat(String(nvfTargetPressure.value).replace(',', '.')) || 0;
+    const span = max - min;
+    const pct = span !== 0 ? ((target - min) / span) * 100 : 0;
+    const formatted = pct.toFixed(1) + ' %';
+    nvfResultPct.textContent = formatted;
+    if (rowF902) rowF902.textContent = formatted;
+  }
+
+  function copyNvf2gSummary() {
+    const text = `=== ПАРАМЕТРЫ ПИД ДЛЯ CHINT NVF2G ===
+Шкала датчика: ${nvfSensorMin.value}..${nvfSensorMax.value} бар, Уставка: ${nvfTargetPressure.value} бар (${nvfResultPct.textContent})
+
+1. Железо:
+- Перемычка J1: положение I (ток 4-20 мА)
+- Датчик (+): клемма +24V, сигнал (-): клемма AI1
+- Пуск: клеммы DI1 и COM
+
+2. Базовые параметры:
+F0.01 = 1 (Пуск с клемм DI1-COM)
+F0.03 = 5 (Источник частоты = ПИД)
+F0.04 = 50.00 (Макс. частота)
+F0.06 = 20.00 (Мин. частота насоса)
+F0.07 = 8.0 с (Время разгона)
+F0.08 = 8.0 с (Время торможения)
+
+3. Вход AI1 (4-20 мА):
+F7.01 = 2.00 (Смещение 4 мА)
+F7.02 = 0.0% (Мин. значение)
+F7.03 = 10.00 (Макс. 20 мА)
+F7.04 = 100.0% (Макс. значение)
+
+4. ПИД-регулятор:
+F9.00 = 0 (Уставка цифровая F9.02)
+F9.01 = 0 (Обратная связь = AI1)
+F9.02 = ${nvfResultPct.textContent} (УСТАВКА ДАВЛЕНИЯ)
+F9.03 = 2.00 (Kp - усиление)
+F9.04 = 2.00 с (Ki - интегрирование)
+F9.05 = 0.00 (Kd - отключен)
+
+5. Спящий режим:
+F9.28 = 1 (Расчет ПИД в останове)
+F9.30 = 1 (Спящий режим включен)
+F9.31 = 25.00 Гц (Частота засыпания)
+F9.32 = 10.0 с (Задержка засыпания)
+F9.33 = 10.0% (Порог пробуждения)
+F9.34 = 1.0 с (Задержка пробуждения)`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Список параметров скопирован в буфер обмена!');
+    }).catch(() => {
+      prompt('Скопируйте параметры:', text);
+    });
+  }
+
+  // Логика мастера настройки DELTA VFD-B
+  const modalDelta = document.getElementById('modalDelta');
+  const deltaSensorMin = document.getElementById('deltaSensorMin');
+  const deltaSensorMax = document.getElementById('deltaSensorMax');
+  const deltaTargetPressure = document.getElementById('deltaTargetPressure');
+  const deltaFmax = document.getElementById('deltaFmax');
+  const deltaResultHz = document.getElementById('deltaResultHz');
+  const deltaResultPct = document.getElementById('deltaResultPct');
+  const deltaHintHz = document.getElementById('deltaHintHz');
+
+  function openDeltaModal() {
+    if (physMinInput && physMaxInput) {
+      deltaSensorMin.value = physMinInput.value;
+      deltaSensorMax.value = physMaxInput.value;
+    }
+    if (valPhys) {
+      const curVal = parseFloat(String(valPhys.value).replace(',', '.')) || 4.0;
+      deltaTargetPressure.value = curVal.toFixed(1);
+    }
+    if (freqMaxInput) {
+      deltaFmax.value = freqMaxInput.value;
+    }
+    recalcDelta();
+    modalDelta.classList.add('active');
+  }
+
+  function closeDeltaModal() {
+    modalDelta.classList.remove('active');
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modalDelta) {
+      closeDeltaModal();
+    }
+  });
+
+  function recalcDelta() {
+    const min = parseFloat(String(deltaSensorMin.value).replace(',', '.')) || 0;
+    const max = parseFloat(String(deltaSensorMax.value).replace(',', '.')) || 10;
+    const target = parseFloat(String(deltaTargetPressure.value).replace(',', '.')) || 0;
+    const fmax = parseFloat(String(deltaFmax.value).replace(',', '.')) || 50;
+    const span = max - min;
+    const pct = span !== 0 ? ((target - min) / span) * 100 : 0;
+    const hz = (pct / 100) * fmax;
+
+    const formattedPct = pct.toFixed(1) + ' %';
+    const formattedHz = hz.toFixed(2) + ' Гц';
+
+    deltaResultPct.textContent = formattedPct;
+    deltaResultHz.textContent = formattedHz;
+    if (deltaHintHz) deltaHintHz.textContent = formattedHz;
+  }
+
+  function copyDeltaSummary() {
+    const text = `=== ПАРАМЕТРЫ ПИД ДЛЯ DELTA VFD-B ===
+Шкала датчика: ${deltaSensorMin.value}..${deltaSensorMax.value} бар, Уставка: ${deltaTargetPressure.value} бар (${deltaResultPct.textContent} = ${deltaResultHz.textContent} при Fmax=${deltaFmax.value}Гц)
+
+1. Клеммы подключения:
+- Датчик (+): клемма +24V, сигнал (-): клемма ACI (4-20 мА)
+- ОБЯЗАТЕЛЬНАЯ перемычка: клемма ACM (аналоговая земля) <-> клемма DCM (общий минус 24V)
+- Пуск / Стоп: тумблер между FWD и DCM
+
+2. Базовые параметры (Группы 01 и 02):
+02-00 = 00 (Задание уставки стрелками пульта UP/DOWN)
+02-01 = 01 (Пуск с внешних клемм FWD-DCM)
+01-00 = ${deltaFmax.value} (Максимальная частота мотора)
+01-02 = 380.0 (Номинальное напряжение мотора)
+01-07 = 20.00 (Минимальная частота насоса)
+01-09 = 8.0 с (Время разгона)
+01-10 = 8.0 с (Время замедления)
+
+3. Настройка ПИД-контура (Группа 10):
+10-00 = 02 (ГЛАВНОЕ: Отрицательная обратная связь по входу ACI 4-20 мА)
+10-01 = 1.00 (Усиление сигнала обратной связи)
+10-02 = 1.50 (Пропорциональный коэффициент P)
+10-03 = 2.00 с (Интегральное время I)
+10-04 = 0.00 с (Дифференциальное время D - выключено)
+10-07 = 100 % (Предел выхода ПИД)
+10-08 = 5.0 с (Время детекции обрыва датчика)
+10-09 = 01 (Останов с замедлением при аварии датчика)
+
+4. Спящий режим насоса (Группа 11: Fan & Pump):
+11-05 = 10.0 с (Время задержки перехода в сон и пробуждения)
+11-06 = 25.00 Гц (Частота засыпания - при отсутствии расхода воды)
+11-07 = 28.00 Гц (Частота пробуждения - строго больше 11-06)
+
+* Уставка давления: нажимайте стрелки ВВЕРХ/ВНИЗ на пульте и выставьте ${deltaResultHz.textContent}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Список параметров для Delta VFD-B скопирован!');
+    }).catch(() => {
+      prompt('Скопируйте параметры:', text);
+    });
+  }
+
+  // Логика мастера настройки DANFOSS VLT FC 302
+  const modalDanfoss = document.getElementById('modalDanfoss');
+  const danfossSensorMin = document.getElementById('danfossSensorMin');
+  const danfossSensorMax = document.getElementById('danfossSensorMax');
+  const danfossTargetPressure = document.getElementById('danfossTargetPressure');
+  const danfossResultBar = document.getElementById('danfossResultBar');
+  const danfossResultPct = document.getElementById('danfossResultPct');
+  const rowDanfoss303 = document.getElementById('rowDanfoss303');
+  const rowDanfoss310 = document.getElementById('rowDanfoss310');
+  const rowDanfoss625 = document.getElementById('rowDanfoss625');
+
+  function openDanfossModal() {
+    if (physMinInput && physMaxInput) {
+      danfossSensorMin.value = physMinInput.value;
+      danfossSensorMax.value = physMaxInput.value;
+    }
+    if (valPhys) {
+      const curVal = parseFloat(String(valPhys.value).replace(',', '.')) || 4.0;
+      danfossTargetPressure.value = curVal.toFixed(1);
+    }
+    recalcDanfoss();
+    modalDanfoss.classList.add('active');
+  }
+
+  function closeDanfossModal() {
+    modalDanfoss.classList.remove('active');
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modalDanfoss) {
+      closeDanfossModal();
+    }
+  });
+
+  function recalcDanfoss() {
+    const min = parseFloat(String(danfossSensorMin.value).replace(',', '.')) || 0;
+    const max = parseFloat(String(danfossSensorMax.value).replace(',', '.')) || 10;
+    const target = parseFloat(String(danfossTargetPressure.value).replace(',', '.')) || 0;
+    const span = max - min;
+    const pct = span !== 0 ? ((target - min) / span) * 100 : 0;
+
+    const formattedBar = target.toFixed(3) + ' бар';
+    const formattedPct = pct.toFixed(1) + ' %';
+    const formattedMax = max.toFixed(3);
+
+    danfossResultBar.textContent = formattedBar;
+    danfossResultPct.textContent = formattedPct;
+
+    if (rowDanfoss303) rowDanfoss303.textContent = formattedMax;
+    if (rowDanfoss625) rowDanfoss625.textContent = formattedMax;
+    if (rowDanfoss310) rowDanfoss310.textContent = formattedBar + ' (или ' + formattedPct + ')';
+  }
+
+  function copyDanfossSummary() {
+    const text = `=== ПАРАМЕТРЫ ПИД ДЛЯ DANFOSS VLT FC 302 ===
+Шкала датчика: ${danfossSensorMin.value}..${danfossSensorMax.value} бар, Уставка: ${danfossTargetPressure.value} бар (${danfossResultPct.textContent})
+
+1. Аппаратные подключения:
+- Снимите пульт LCP: переключатель входа 54 (A54) перевести в положение «I» (ток 4-20 мА)
+- ОБЯЗАТЕЛЬНАЯ перемычка Safe Stop: клемма 12 (+24V) <-> клемма 37 (Safe Stop)
+- Датчик давления 4-20 мА (+): клемма 12 (+24V), сигнал (-): клемма 54, земля: клемма 55
+- Пуск: тумблер между клеммой 12 (+24V) и клеммой 18 (Start)
+
+2. Базовые параметры (Группы 1, 3, 4, 5):
+1-00 = [3] Process (Режим замкнутого контура ПИД)
+1-03 = [1] Variable Torque (Переменный момент / насос)
+3-02 = 0.000 (Минимальное задание, бар)
+3-03 = ${parseFloat(danfossSensorMax.value || 10).toFixed(3)} (Максимальное задание, бар)
+3-10[0] = ${parseFloat(danfossTargetPressure.value || 4).toFixed(3)} (Предустановленное задание давления)
+4-12 = 20.0 Гц (Нижний предел частоты мотора)
+4-14 = 50.0 Гц (Верхний предел частоты мотора)
+3-41 = 8.00 с (Время разгона)
+3-42 = 8.00 с (Время замедления)
+5-10 = [8] Start (Клемма 18 - Пуск)
+
+3. Масштабирование входа 54 (Группа 6):
+6-22 = 4.00 mA (Мин. ток)
+6-23 = 20.00 mA (Макс. ток)
+6-24 = 0.000 (Мин. давление при 4 мА)
+6-25 = ${parseFloat(danfossSensorMax.value || 10).toFixed(3)} (Макс. давление датчика при 20 мА)
+
+4. ПИД-регулятор процесса (Группа 7):
+7-20 = [2] Analog Input 54 (Источник обратной связи ПИД)
+7-30 = [0] Normal (Нормальное регулирование)
+7-31 = [1] On (Защита от насыщения интегратора)
+7-33 = 1.00 (Пропорциональный коэффициент Kp)
+7-34 = 3.00 s (Интегральное время Ti)
+7-35 = 0.00 s (Дифференцирование выключено)
+
+5. Спящий режим насоса (Группа 22: Application Functions):
+22-22 = [1] Enabled (Контроль низкой скорости)
+22-23 = [1] Sleep Mode (Функция отсутствия расхода = Сон)
+22-40 = 10 s (Мин. время работы насоса перед уходом в сон)
+22-41 = 10 s (Мин. время нахождения в спящем режиме)
+22-44 = 10.0 % (Порог пробуждения при падении давления)
+
+* ВАЖНО: на панели LCP обязательно нажмите кнопку [Auto On] для работы по ПИД-регулятору!`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Список параметров для Danfoss VLT FC 302 скопирован!');
+    }).catch(() => {
+      prompt('Скопируйте параметры:', text);
+    });
+  }
+
+  // Переключение вкладок в модальных окнах частотников
+  function switchModalTab(vfdType, tabIdx) {
+    const tabs = document.querySelectorAll(`[data-tab-target^="pane-${vfdType}-"]`);
+    const panes = document.querySelectorAll(`[id^="pane-${vfdType}-"]`);
+    tabs.forEach((tab, i) => {
+      if (i === tabIdx) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    });
+    panes.forEach((pane, i) => {
+      if (i === tabIdx) {
+        pane.classList.add('active');
+      } else {
+        pane.classList.remove('active');
+      }
+    });
+  }
+
+
+  // ==========================================
+  // ЛОГИКА МАСТЕРА НАСТРОЙКИ СЕРИИ 900 / X9
+  // ==========================================
+  const modalSeries900 = document.getElementById('modalSeries900');
+  const s900SensorMin = document.getElementById('s900SensorMin');
+  const s900SensorMax = document.getElementById('s900SensorMax');
+  const s900TargetPressure = document.getElementById('s900TargetPressure');
+  const s900ResultBar = document.getElementById('s900ResultBar');
+  const hintS900F501 = document.getElementById('hintS900F501');
+  const hintS900F509 = document.getElementById('hintS900F509');
+
+  function openSeries900Modal() {
+    if (physMinInput && physMaxInput) {
+      s900SensorMin.value = physMinInput.value;
+      s900SensorMax.value = physMaxInput.value;
+    }
+    if (valPhys) {
+      const curVal = parseFloat(String(valPhys.value).replace(',', '.')) || 4.0;
+      s900TargetPressure.value = curVal.toFixed(1);
+    }
+    recalcSeries900();
+    modalSeries900.classList.add('active');
+  }
+
+  function closeSeries900Modal() {
+    modalSeries900.classList.remove('active');
+  }
+
+  window.addEventListener('click', (e) => {
+    if (e.target === modalSeries900) {
+      closeSeries900Modal();
+    }
+  });
+
+  function recalcSeries900() {
+    const mn = parseFloat(String(s900SensorMin.value).replace(',', '.')) || 0;
+    const mx = parseFloat(String(s900SensorMax.value).replace(',', '.')) || 10;
+    const target = parseFloat(String(s900TargetPressure.value).replace(',', '.')) || 0;
+    const span = mx - mn;
+    const pct = span !== 0 ? ((target - mn) / span) * 100 : 0;
+    
+    if (s900ResultBar) {
+      s900ResultBar.textContent = target.toFixed(1) + ' Bar (' + pct.toFixed(1) + ' %)';
+    }
+    if (hintS900F501) {
+      hintS900F501.textContent = target.toFixed(1) + ' Bar';
+    }
+    if (hintS900F509) {
+      hintS900F509.textContent = mx.toFixed(1) + ' Bar';
+    }
+  }
+
+  function copySeries900Summary() {
+    const mn = parseFloat(String(s900SensorMin.value).replace(',', '.')) || 0;
+    const mx = parseFloat(String(s900SensorMax.value).replace(',', '.')) || 10;
+    const target = parseFloat(String(s900TargetPressure.value).replace(',', '.')) || 0;
+
+    const text = `НАСТРОЙКА ЧРП СЕРИЯ 900 / X9 (900M / 900G)
+-----------------------------------------------
+Датчик давления: 4-20 мА (${mn}..${mx} бар)
+Целевое давление: ${target} бар
+
+СХЕМА ПОДКЛЮЧЕНИЯ:
+• Для 900M (Mini): клемма DC (+24В при F0-06=2) -> (+) датчика; клемма AI -> (-) датчика; GND - общий.
+• Для 900G: клемма 24V -> (+) датчика; AI1 -> (-) датчика; перемычка COM - GND.
+• Пуск: контакт между DI1 и GND (или COM).
+
+СПИСОК ПАРАМЕТРОВ:
+• F0-00 = 1       -> Пуск с внешних клемм (DI1)
+• F0-01 = 6       -> Режим водоснабжения постоянного давления
+• F0-04 = 10.0 с  -> Время разгона
+• F0-05 = 10.0 с  -> Время торможения
+• F0-06 = 2       -> Выход клеммы DC: 24В (для 900M)
+• F0-07 = 0002    -> Формат входа AI1: 4-20 мА
+• F0-08 = 0       -> Останов по рампе
+• F0-09 = 50.0 Гц -> Верхний предел частоты
+• F0-10 = 20.0 Гц -> Нижний предел частоты (защита насоса)
+• F5-00 = 0       -> Источник уставки: параметр F5-01
+• F5-01 = ${target.toFixed(1)} Bar  -> Уставка целевого давления
+• F5-02 = 0       -> Обратная связь: вход AI1 / AI
+• F5-03 = 0       -> Прямое действие ПИД
+• F5-04 = 20.0    -> Усиление Kp
+• F5-05 = 0.80 с  -> Интеграл Ki
+• F5-08 = 1       -> Тип датчика: 4-20 мА
+• F5-09 = ${mx.toFixed(1)} Bar -> Шкала датчика давления
+• F5-12 = 22.0 Гц -> Частота сна (Dormant Frequency)
+• F5-13 = 10.0 с  -> Задержка засыпания
+• F5-17 = 80 %    -> Давление пробуждения (80% от уставки)
+• F5-18 = 200 %   -> Защита от избыточного давления
+• F5-19 = 15.0 с  -> Детекция сухого хода (A52)
+• F5-20 = 48.0 Гц -> Частота сухого хода
+• F5-22 = 20 %    -> Порог давления сухого хода
+• F5-23 = 20 мин  -> Автоперезапуск после сухого хода`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Параметры Серии 900 скопированы в буфер обмена!');
+    }).catch(() => {
+      prompt('Скопируйте параметры:', text);
+    });
+  }
+
+</script>
+
+</body>
+</html>

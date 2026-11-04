@@ -1,0 +1,25 @@
+{
+  "name": "Калькулятор КИПиА и ЧРП (4-20 мА)",
+  "short_name": "КИПиА 4-20",
+  "description": "Расчет сигналов датчиков 4-20мА, процентов и частоты частотника",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

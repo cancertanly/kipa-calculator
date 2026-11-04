@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>Калькулятор сигналов КИПиА и Частотника (4-20 мА)</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .params-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .param-card {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .param-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .range-tag {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .range-sep {
+      color: var(--card-border);
+      padding: 0 2px;
+    }
+
+    .range-unit {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-left: 2px;
+      white-space: nowrap;
+    }
+
+    .input-compact {
+      width: 62px !important;
+      padding: 6px 6px !important;
+      font-size: 0.95rem !important;
+      text-align: center;
+      background: #1e293b !important;
+      border: 1px solid var(--card-border) !important;
+      border-radius: 6px;
+      color: #fff;
+    }
+
+    /* Убираем стрелочки спиннера, чтобы поля не занимали лишнее место */
+    .input-compact::-webkit-inner-spin-button,
+    .input-compact::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .input-compact {
+      -moz-appearance: textfield;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+      }
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: #fff;
+      padding: 10px 12px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* Primary Interactive Value Inputs */
+    .value-card {
+      background: #0b1329;
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .value-card:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .value-card .badge {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: #1e293b;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      border: 1px solid var(--card-border);
+    }
+
+    .value-card input {
+      width: 100%;
+      font-size: 1.7rem;
+      font-weight: 700;
+      text-align: center;
+      background: transparent;
+      border: none;
+      color: #fff;
+      padding: 4px;
+    }
+
+    .value-card input:focus {
+      box-shadow: none;
+    }
+
+    .value-card .unit {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    /* Slider Bar */
+    .slider-container {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #334155;
+      outline: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+      border: 2px solid #fff;
+      transition: transform 0.1s ease;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Quick Preset Buttons */
+    .quick-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-quick {
+      flex: 1;
+      min-width: 60px;
+      background: #334155;
+      color: var(--text-main);
+      border: 1px solid transparent;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .btn-quick:hover {
+      background: var(--accent);
+      color: #0f172a;
+    }
+
+    /* Gauge / Comparison Scale */
+    .visual-scale {
+      margin-top: 20px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .scale-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .scale-progress-container {
+      position: relative;
+      height: 18px;
+      background: #1e293b;
+      border-radius: 9px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .scale-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      transition: width 0.1s linear;
+    }
+
+    .alarm-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+
+    .status-normal {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .status-broken {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .status-overflow {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    /* Calibration Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th {
+      background: #0f172a;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(56, 189, 248, 0.05);
+      cursor: pointer;
+    }
+
+    /* Formulas collapse */
+    details {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .formula-box {
+      margin-top: 10px;
+      padding: 10px;
+      background: #1e293b;
+      border-radius: 6px;
+      font-family: monospace;
+      color: var(--accent);
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 16px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>⚡ Калькулятор сигналов КИПиА и Частотника</h1>
+    <p>Взаимный расчет: Сигнал тока (4-20 мА) ⇄ Процент ЧРП (0-100%) ⇄ Физическая величина ⇄ Частота (Гц)</p>
+    <div style="margin-top: 10px; display: flex; justify-content: center; gap: 8px;">
+      <button id="btnInstallApp" style="display: none; background: #10b981; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
+        📲 Установить приложение на телефон
+      </button>
+    </div>
+  </header>
+
+  <!-- БЛОК НАСТРОЕК ШКАЛЫ -->
+  <div class="card">
+    <div class="card-title">⚙️ Параметры датчика и частотника</div>
+    <div class="params-grid">
+      <!-- 1. Сигнал датчика -->
+      <div class="param-card">
+        <label for="signalType" class="param-title">Тип сигнала / Токовая петля</label>
+        <select id="signalType">
+          <option value="4-20">4 – 20 мА (Стандарт КИПиА)</option>
+          <option value="0-20">0 – 20 мА</option>
+          <option value="0-10">0 – 10 В (Напряжение)</option>
+          <option value="2-10">2 – 10 В</option>
+          <option value="custom">Пользовательский...</option>
+        </select>
+        <div class="range-row">
+          <span class="range-tag">Мин:</span>
+          <input type="number" id="sigMin" class="input-compact" value="4" step="0.1">
+          <span class="range-sep">—</span>
+          <span class="range-tag">Макс:</span>
+          <input type="number" id="sigMax" class="input-compact" value="20" step="0.1">
+          <span class="range-unit" id="lblSignalUnit">мА</span>
+        </div>
+      </div>
+
+      <!-- 2. Физическая величина -->
+      <div class="param-card">
+        <label for="unitPreset" class="param-title">Физическая величина</label>
+        <select id="unitPreset">
+          <option value="pressure_10" selected>Давление: 0 – 10 бар</option>
+          <option value="pressure_16">Давление: 0 – 16 бар</option>
+          <option value="pressure_6">Давление: 0 – 6 бар</option>
+          <option value="pressure_25">Давление: 0 – 25 бар</option>
+          <option value="temp_100">Температура: 0 – 100 °C</option>
+          <option value="temp_150">Температура: -50 – +150 °C</option>
+          <option value="flow_100">Расход: 0 – 100 м³/ч</option>
+          <option value="level_5">Уровень: 0 – 5 м</option>
+          <option value="custom">Свой диапазон...</option>
+        </select>
+        <div class="range-row">
+          <span class="range-tag">Мин:</span>
+          <input type="number" id="physMin" class="input-compact" value="0" step="0.1">
+          <span class="range-sep">—</span>
+          <span class="range-tag">Макс:</span>
+          <input type="number" id="physMax" class="input-compact" value="10" step="0.1">
+          <span class="range-unit" id="lblPhysUnitMin">бар</span>
+        </div>
+      </div>
+
+      <!-- 3. Частота ЧРП -->
+      <div class="param-card">
+        <label for="freqPreset" class="param-title">Диапазон частоты ЧРП</label>
+        <select id="freqPreset">
+          <option value="0-50" selected>0 – 50 Гц (Стандарт)</option>
+          <option value="0-60">0 – 60 Гц</option>
+          <option value="20-50">20 – 50 Гц</option>
+          <option value="custom">Свой диапазон...</option>
+        </select>
+        <div class="range-row">
+          <span class="range-tag">Fмин:</span>
+          <input type="number" id="freqMin" class="input-compact" value="0" step="0.1">
+          <span class="range-sep">—</span>
+          <span class="range-tag">Fмакс:</span>
+          <input type="number" id="freqMax" class="input-compact" value="50" step="0.1">
+          <span class="range-unit">Гц</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- БЛОК ИНТЕРАКТИВНОГО РАСЧЕТА -->
+  <div class="card">
+    <div class="card-title">🎯 Интерактивный расчет в реальном времени</div>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 14px;">
+      Введите любое значение в любое из полей или двигайте ползунок — остальные параметры пересчитаются автоматически:
+    </p>
+
+    <div class="grid-4">
+      <!-- Входной ток -->
+      <div class="value-card">
+        <span class="badge" id="badgeSig">СИГНАЛ ДАТЧИКА</span>
+        <input type="number" id="valSignal" value="12.000" step="0.01">
+        <span class="unit" id="unitSig">мА</span>
+      </div>
+
+      <!-- Процент для частотника -->
+      <div class="value-card">
+        <span class="badge">ЗАДАНИЕ ЧРП</span>
+        <input type="number" id="valPercent" value="50.00" step="0.1">
+        <span class="unit">% от шкалы</span>
+      </div>
+
+      <!-- Физическая величина -->
+      <div class="value-card">
+        <span class="badge" id="badgePhys">ИЗМЕРЕНИЕ</span>
+        <input type="number" id="valPhys" value="5.000" step="0.01">
+        <span class="unit" id="unitPhys">бар</span>
+      </div>
+
+      <!-- Частота частотника -->
+      <div class="value-card">
+        <span class="badge">ВЫХОД ЧРП</span>
+        <input type="number" id="valFreq" value="25.00" step="0.1">
+        <span class="unit">Гц</span>
+      </div>
+    </div>
+
+    <!-- Ползунок -->
+    <div class="slider-container">
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+        <span>0%</span>
+        <span>25%</span>
+        <span>50%</span>
+        <span>75%</span>
+        <span>100%</span>
+      </div>
+      <input type="range" id="mainSlider" min="0" max="100" step="0.1" value="50">
+    </div>
+
+    <!-- Кнопки быстрой установки -->
+    <div class="quick-buttons">
+      <button class="btn-quick" onclick="setByPercent(0)">0% (Мин)</button>
+      <button class="btn-quick" onclick="setByPercent(25)">25%</button>
+      <button class="btn-quick" onclick="setByPercent(50)">50% (Сред)</button>
+      <button class="btn-quick" onclick="setByPercent(75)">75%</button>
+      <button class="btn-quick" onclick="setByPercent(100)">100% (Макс)</button>
+      <button class="btn-quick" style="border-color: rgba(239, 68, 68, 0.4);" onclick="setBySignal(0)">0 мА (Обрыв)</button>
+      <button class="btn-quick" style="border-color: rgba(245, 158, 11, 0.4);" onclick="setBySignal(21)">21 мА (Авария)</button>
+    </div>
+
+    <!-- Индикатор шкалы -->
+    <div class="visual-scale">
+      <div class="scale-row">
+        <span>Уровень сигнала: <strong id="dispPercent">50.0%</strong></span>
+        <span>Текущая точка: <strong id="dispSummary">12.0 мА = 5.0 бар = 25.0 Гц</strong></span>
+      </div>
+      <div class="scale-progress-container">
+        <div class="scale-progress-bar" id="progressBar" style="width: 50%;"></div>
+      </div>
+      <div id="alarmStatus" class="alarm-status status-normal">
+        ✅ Сигнал в пределах нормы (нормальная работа датчика)
+      </div>
+    </div>
+  </div>
+
+  <!-- ТАБЛИЦА КАЛИБРОВКИ / ПРОВЕРКИ -->
+  <div class="card">
+    <div class="card-title">📊 Контрольная таблица калибровки (шаг 10%)</div>
+    <div class="table-container">
+      <table id="calibTable">
+        <thead>
+          <tr>
+            <th>Точка шкалы</th>
+            <th id="thSignal">Сигнал (мА)</th>
+            <th id="thPhys">Величина (бар)</th>
+            <th>Частота (Гц)</th>
+            <th>Состояние</th>
+          </tr>
+        </thead>
+        <tbody id="calibTbody">
+          <!-- Заполняется динамически -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ФОРМУЛЫ И СПРАВКА -->
+  <div class="card">
+    <details>
+      <summary>📐 Математические формулы масштабирования и масштабирования в ПЛК / ПЧ</summary>
+      <div class="formula-box">
+        <strong>1. Расчет процента из сигнала:</strong><br>
+        % = ((I - I_min) / (I_max - I_min)) × 100%<br><br>
+        <strong>2. Расчет физической величины:</strong><br>
+        P = P_min + (% / 100) × (P_max - P_min)<br><br>
+        <strong>3. Расчет выходной частоты частотника:</strong><br>
+        F = F_min + (% / 100) × (F_max - F_min)<br><br>
+        <strong>4. Расчет тока по заданной физ. величине:</strong><br>
+        I = I_min + ((P - P_min) / (P_max - P_min)) × (I_max - I_min)<br><br>
+        <strong>5. Стандарты сигналов NAMUR NE43 для 4-20 мА:</strong><br>
+        • &lt; 3.6 мА — Обрыв цепи / Авария датчика<br>
+        • 3.8 ... 4.0 мА — Нижний диапазон погрешности<br>
+        • 4.0 ... 20.0 мА — Нормальный рабочий диапазон (0 ... 100%)<br>
+        • 20.0 ... 20.5 мА — Верхний диапазон погрешности<br>
+        • &gt; 21.0 мА — Короткое замыкание / Неисправность датчика
+      </div>
+    </details>
+  </div>
+
+  <footer>
+    Разработано для инженеров КИПиА, АСУ ТП и наладчиков частотных преобразователей • 2026
+  </footer>
+</div>
+
+<script>
+  // DOM Элементы конфигурации
+  const signalTypeSelect = document.getElementById('signalType');
+  const unitPresetSelect = document.getElementById('unitPreset');
+  const freqPresetSelect = document.getElementById('freqPreset');
+
+  const sigMinInput = document.getElementById('sigMin');
+  const sigMaxInput = document.getElementById('sigMax');
+  const physMinInput = document.getElementById('physMin');
+  const physMaxInput = document.getElementById('physMax');
+  const freqMinInput = document.getElementById('freqMin');
+  const freqMaxInput = document.getElementById('freqMax');
+
+  const lblSignalUnit = document.getElementById('lblSignalUnit');
+  const lblSignalUnit2 = document.getElementById('lblSignalUnit2');
+  const lblPhysUnitMin = document.getElementById('lblPhysUnitMin');
+  const lblPhysUnitMax = document.getElementById('lblPhysUnitMax');
+  const unitSig = document.getElementById('unitSig');
+  const unitPhys = document.getElementById('unitPhys');
+  const badgePhys = document.getElementById('badgePhys');
+  const thSignal = document.getElementById('thSignal');
+  const thPhys = document.getElementById('thPhys');
+
+  // DOM Элементы ввода значений
+  const valSignal = document.getElementById('valSignal');
+  const valPercent = document.getElementById('valPercent');
+  const valPhys = document.getElementById('valPhys');
+  const valFreq = document.getElementById('valFreq');
+  const mainSlider = document.getElementById('mainSlider');
+
+  // Индикация
+  const progressBar = document.getElementById('progressBar');
+  const dispPercent = document.getElementById('dispPercent');
+  const dispSummary = document.getElementById('dispSummary');
+  const alarmStatus = document.getElementById('alarmStatus');
+  const calibTbody = document.getElementById('calibTbody');
+
+  let currentPhysName = "бар";
+  let currentSigUnit = "мА";
+
+  // Обработка пресетов сигналов
+  signalTypeSelect.addEventListener('change', () => {
+    const val = signalTypeSelect.value;
+    if (val === '4-20') {
+      sigMinInput.value = 4;
+      sigMaxInput.value = 20;
+      setSignalUnit('мА');
+    } else if (val === '0-20') {
+      sigMinInput.value = 0;
+      sigMaxInput.value = 20;
+      setSignalUnit('мА');
+    } else if (val === '0-10') {
+      sigMinInput.value = 0;
+      sigMaxInput.value = 10;
+      setSignalUnit('В');
+    } else if (val === '2-10') {
+      sigMinInput.value = 2;
+      sigMaxInput.value = 10;
+      setSignalUnit('В');
+    }
+    updateAllFromPercent(parseFloat(valPercent.value));
+    renderTable();
+  });
+
+  function setSignalUnit(unit) {
+    currentSigUnit = unit;
+    if (lblSignalUnit) lblSignalUnit.textContent = unit;
+    if (lblSignalUnit2) lblSignalUnit2.textContent = unit;
+    if (unitSig) unitSig.textContent = unit;
+    if (thSignal) thSignal.textContent = `Сигнал (${unit})`;
+  }
+
+  // Обработка пресетов физической величины
+  unitPresetSelect.addEventListener('change', () => {
+    const val = unitPresetSelect.value;
+    let min = 0, max = 10, unit = "бар", title = "Давление";
+
+    if (val === 'pressure_10') { min = 0; max = 10; unit = "бар"; title = "Давление"; }
+    else if (val === 'pressure_16') { min = 0; max = 16; unit = "бар"; title = "Давление"; }
+    else if (val === 'pressure_6') { min = 0; max = 6; unit = "бар"; title = "Давление"; }
+    else if (val === 'pressure_25') { min = 0; max = 25; unit = "бар"; title = "Давление"; }
+    else if (val === 'temp_100') { min = 0; max = 100; unit = "°C"; title = "Температура"; }
+    else if (val === 'temp_150') { min = -50; max = 150; unit = "°C"; title = "Температура"; }
+    else if (val === 'flow_100') { min = 0; max = 100; unit = "м³/ч"; title = "Расход"; }
+    else if (val === 'level_5') { min = 0; max = 5; unit = "м"; title = "Уровень"; }
+
+    if (val !== 'custom') {
+      physMinInput.value = min;
+      physMaxInput.value = max;
+      currentPhysName = unit;
+      if (lblPhysUnitMin) lblPhysUnitMin.textContent = unit;
+      if (lblPhysUnitMax) lblPhysUnitMax.textContent = unit;
+      if (unitPhys) unitPhys.textContent = unit;
+      if (badgePhys) badgePhys.textContent = title.toUpperCase();
+      if (thPhys) thPhys.textContent = `${title} (${unit})`;
+    }
+    updateAllFromPercent(parseFloat(valPercent.value));
+    renderTable();
+  });
+
+  // Обработка пресетов частотника
+  freqPresetSelect.addEventListener('change', () => {
+    const val = freqPresetSelect.value;
+    if (val === '0-50') {
+      freqMinInput.value = 0;
+      freqMaxInput.value = 50;
+    } else if (val === '0-60') {
+      freqMinInput.value = 0;
+      freqMaxInput.value = 60;
+    } else if (val === '20-50') {
+      freqMinInput.value = 20;
+      freqMaxInput.value = 50;
+    }
+    updateAllFromPercent(parseFloat(valPercent.value));
+    renderTable();
+  });
+
+  // Слушатели ручной смены настроек
+  [sigMinInput, sigMaxInput, physMinInput, physMaxInput, freqMinInput, freqMaxInput].forEach(inp => {
+    inp.addEventListener('input', () => {
+      updateAllFromPercent(parseFloat(valPercent.value));
+      renderTable();
+    });
+  });
+
+  // ==================== РАСЧЕТЫ ====================
+
+  function getLimits() {
+    return {
+      sMin: parseFloat(sigMinInput.value) || 0,
+      sMax: parseFloat(sigMaxInput.value) || 20,
+      pMin: parseFloat(physMinInput.value) || 0,
+      pMax: parseFloat(physMaxInput.value) || 10,
+      fMin: parseFloat(freqMinInput.value) || 0,
+      fMax: parseFloat(freqMaxInput.value) || 50
+    };
+  }
+
+  // Расчет по проценту
+  function updateAllFromPercent(pct, skipSelf = false) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const ratio = pct / 100;
+
+    const signal = sMin + ratio * (sMax - sMin);
+    const phys = pMin + ratio * (pMax - pMin);
+    const freq = fMin + ratio * (fMax - fMin);
+
+    valSignal.value = signal.toFixed(3);
+    valPhys.value = phys.toFixed(3);
+    valFreq.value = freq.toFixed(2);
+    if (!skipSelf) {
+      valPercent.value = pct.toFixed(2);
+    }
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, signal, phys, freq);
+  }
+
+  // Расчет по сигналу
+  function updateAllFromSignal(sig) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const span = sMax - sMin;
+    const ratio = span !== 0 ? (sig - sMin) / span : 0;
+    const pct = ratio * 100;
+
+    const phys = pMin + ratio * (pMax - pMin);
+    const freq = fMin + ratio * (fMax - fMin);
+
+    valPercent.value = pct.toFixed(2);
+    valPhys.value = phys.toFixed(3);
+    valFreq.value = freq.toFixed(2);
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, sig, phys, freq);
+  }
+
+  // Расчет по физ. величине
+  function updateAllFromPhys(phys) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const span = pMax - pMin;
+    const ratio = span !== 0 ? (phys - pMin) / span : 0;
+    const pct = ratio * 100;
+
+    const signal = sMin + ratio * (sMax - sMin);
+    const freq = fMin + ratio * (fMax - fMin);
+
+    valSignal.value = signal.toFixed(3);
+    valPercent.value = pct.toFixed(2);
+    valFreq.value = freq.toFixed(2);
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, signal, phys, freq);
+  }
+
+  // Расчет по частоте
+  function updateAllFromFreq(freq) {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    const span = fMax - fMin;
+    const ratio = span !== 0 ? (freq - fMin) / span : 0;
+    const pct = ratio * 100;
+
+    const signal = sMin + ratio * (sMax - sMin);
+    const phys = pMin + ratio * (pMax - pMin);
+
+    valSignal.value = signal.toFixed(3);
+    valPercent.value = pct.toFixed(2);
+    valPhys.value = phys.toFixed(3);
+    mainSlider.value = Math.max(0, Math.min(100, pct));
+
+    updateVisuals(pct, signal, phys, freq);
+  }
+
+  // Визуальное обновление индикатора и статуса NAMUR NE43
+  function updateVisuals(pct, signal, phys, freq) {
+    const clampedPct = Math.max(0, Math.min(100, pct));
+    progressBar.style.width = clampedPct + '%';
+    dispPercent.textContent = pct.toFixed(1) + '%';
+    dispSummary.textContent = `${signal.toFixed(2)} ${currentSigUnit} = ${phys.toFixed(2)} ${currentPhysName} = ${freq.toFixed(1)} Гц`;
+
+    const { sMin, sMax } = getLimits();
+
+    // Оценка статуса (токовая петля 4-20 мА)
+    if (sMin === 4 && sMax === 20 && currentSigUnit === 'мА') {
+      if (signal < 3.6) {
+        alarmStatus.className = "alarm-status status-broken";
+        alarmStatus.innerHTML = `⚠️ ОБРЫВ ЛИНИИ / ОТКАЗ ДАТЧИКА (I = ${signal.toFixed(2)} мА &lt; 3.6 мА)`;
+      } else if (signal >= 3.6 && signal < 3.99) {
+        alarmStatus.className = "alarm-status status-overflow";
+        alarmStatus.innerHTML = `⚠️ Сигнал ниже диапазона 4 мА (I = ${signal.toFixed(2)} мА, возможно отрицательный дрейф)`;
+      } else if (signal > 20.5 && signal <= 21.0) {
+        alarmStatus.className = "alarm-status status-overflow";
+        alarmStatus.innerHTML = `⚠️ Сигнал выше диапазона 20 мА (I = ${signal.toFixed(2)} мА, перегрузка датчика)`;
+      } else if (signal > 21.0) {
+        alarmStatus.className = "alarm-status status-broken";
+        alarmStatus.innerHTML = `🚨 НЕИСПРАВНОСТЬ / КЗ / ЗАШКАЛ (I = ${signal.toFixed(2)} мА &gt; 21.0 мА)`;
+      } else {
+        alarmStatus.className = "alarm-status status-normal";
+        alarmStatus.innerHTML = `✅ Сигнал в пределах нормы (нормальная работа датчика)`;
+      }
+    } else {
+      if (pct < 0 || pct > 100) {
+        alarmStatus.className = "alarm-status status-overflow";
+        alarmStatus.innerHTML = `⚠️ Значение вне калиброванного диапазона (0 ... 100%)`;
+      } else {
+        alarmStatus.className = "alarm-status status-normal";
+        alarmStatus.innerHTML = `✅ Сигнал в пределах нормы`;
+      }
+    }
+  }
+
+  // События ввода
+  valSignal.addEventListener('input', () => updateAllFromSignal(parseFloat(valSignal.value) || 0));
+  valPercent.addEventListener('input', () => updateAllFromPercent(parseFloat(valPercent.value) || 0, true));
+  valPhys.addEventListener('input', () => updateAllFromPhys(parseFloat(valPhys.value) || 0));
+  valFreq.addEventListener('input', () => updateAllFromFreq(parseFloat(valFreq.value) || 0));
+
+  mainSlider.addEventListener('input', () => {
+    updateAllFromPercent(parseFloat(mainSlider.value));
+  });
+
+  // Быстрые кнопки
+  window.setByPercent = function(pct) {
+    updateAllFromPercent(pct);
+  };
+
+  window.setBySignal = function(sig) {
+    valSignal.value = sig;
+    updateAllFromSignal(sig);
+  };
+
+  // Построение таблицы калибровки
+  function renderTable() {
+    const { sMin, sMax, pMin, pMax, fMin, fMax } = getLimits();
+    calibTbody.innerHTML = '';
+
+    const steps = [0, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 100];
+
+    steps.forEach(pct => {
+      const ratio = pct / 100;
+      const sig = sMin + ratio * (sMax - sMin);
+      const phys = pMin + ratio * (pMax - pMin);
+      const freq = fMin + ratio * (fMax - fMin);
+
+      let statusBadge = '🟢 Норма';
+      if (pct === 0) statusBadge = '🔹 Минимум';
+      if (pct === 50) statusBadge = '🔹 Среднее';
+      if (pct === 100) statusBadge = '🔹 Максимум';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${pct}%</strong></td>
+        <td>${sig.toFixed(2)} ${currentSigUnit}</td>
+        <td>${phys.toFixed(2)} ${currentPhysName}</td>
+        <td>${freq.toFixed(2)} Гц</td>
+        <td>${statusBadge}</td>
+      `;
+      tr.addEventListener('click', () => {
+        updateAllFromPercent(pct);
+      });
+      calibTbody.appendChild(tr);
+    });
+  }
+
+  // Инициализация при старте
+  updateAllFromPercent(50);
+  renderTable();
+
+  // Регистрация Service Worker для Android PWA (автономная работа)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // Обработка кнопки установки на телефон Android
+  let deferredPrompt;
+  const btnInstallApp = document.getElementById('btnInstallApp');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (btnInstallApp) {
+      btnInstallApp.style.display = 'inline-block';
+      btnInstallApp.addEventListener('click', () => {
+        btnInstallApp.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+        });
+      });
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (btnInstallApp) btnInstallApp.style.display = 'none';
+  });
+</script>
+
+</body>
+</html>
